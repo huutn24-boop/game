@@ -1,4 +1,4 @@
-# Thunderstorm Survival
+# Thunderstorm
 
 Game né những quả cầu sét rơi liên tục, theo phong cách neon của ảnh tham khảo.
 
@@ -14,6 +14,6 @@ Sau đó mở http://localhost:8000. Không cần Docker để chơi bản web �
 
 ## Dùng trong WordPress
 
-Plugin Thunderstorm Survival nằm ở thunderstorm-survival.php. Chép cả thư mục game (gồm thư mục assets) vào wp-content/plugins, kích hoạt plugin trong trang quản trị, rồi thêm shortcode sau vào trang:
+Plugin Thunderstorm nằm ở thunderstorm-survival.php. Chép cả thư mục game (gồm thư mục assets) vào wp-content/plugins, kích hoạt plugin trong trang quản trị, rồi thêm shortcode sau vào trang:
 
     [thunderstorm_survival]

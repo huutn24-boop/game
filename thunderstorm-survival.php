@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Thunderstorm Survival — Bóng Rơi
+ * Plugin Name: Thunderstorm
  * Description: Game né bóng rơi theo phong cách neon. Dùng shortcode [thunderstorm_survival] để hiển thị.
  * Version: 1.0.0
  * Author: Site Admin
@@ -26,11 +26,11 @@ function thunderstorm_survival_shortcode() {
 
 	ob_start();
 	?>
-	<section class="ts-game" id="<?php echo esc_attr( $game_id ); ?>" data-ts-game aria-label="Thunderstorm Survival">
+	<section class="ts-game" id="<?php echo esc_attr( $game_id ); ?>" data-ts-game aria-label="Thunderstorm">
 		<header class="ts-game__header">
 			<div class="ts-game__brand">
 				<p class="ts-game__eyebrow">NEON ARCADE <span>//</span> SURVIVAL MODE</p>
-				<h2>THUNDERSTORM<br><strong>SURVIVAL</strong></h2>
+				<h2>THUNDERSTORM</h2>
 			</div>
 			<div class="ts-game__hud" aria-label="Thông tin ván chơi">
 				<div class="ts-game__stat"><span>CẤP ĐỘ</span><strong data-level>1</strong></div>
