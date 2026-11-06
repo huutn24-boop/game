@@ -43,7 +43,7 @@ function thunderstorm_survival_shortcode() {
 			<div class="ts-game__stage">
 				<canvas class="ts-game__canvas" data-canvas tabindex="0" role="img" aria-label="Dùng A, D hoặc phím mũi tên để di chuyển và né bóng."></canvas>
 				<div class="ts-game__status" aria-live="polite"><i></i><span data-status>BÃO ĐANG TẠM LẶNG</span></div>
-				<div class="ts-game__key-hint" aria-hidden="true">A / D <span>← / →</span> DI CHUYỂN</div>
+				<div class="ts-game__key-hint" aria-hidden="true">A / D <span>← / →</span> HOẶC CHẠM VUỐT</div>
 				<div class="ts-game__overlay" data-overlay role="status" aria-live="polite">
 					<div class="ts-game__card">
 						<p class="ts-game__kicker" data-kicker>THỬ THÁCH SINH TỒN</p>
@@ -51,7 +51,7 @@ function thunderstorm_survival_shortcode() {
 						<p data-copy>Những quả cầu sét sẽ rơi nhanh dần. Né càng lâu, điểm càng cao.</p>
 						<p class="ts-game__result" data-result hidden></p>
 						<button class="ts-game__start" type="button" data-start>BẮT ĐẦU</button>
-						<small>A / D hoặc phím ← / → để di chuyển</small>
+						<small>A / D, phím mũi tên hoặc chạm vuốt màn hình để né</small>
 					</div>
 				</div>
 			</div>

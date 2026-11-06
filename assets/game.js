@@ -368,6 +368,9 @@
 		var shockwaves = [];
 		var comboFloaters = [];
 		var strikeBolts = [];
+		var touchActive = false;
+		var touchTargetX = null;
+		var touchPointerId = null;
 
 		try { highScore = Number(localStorage.getItem(storageKey)) || 0; } catch (error) {}
 		bestText.textContent = String(highScore);
@@ -470,6 +473,9 @@
 			shockwaves = [];
 			comboFloaters = [];
 			strikeBolts = [];
+			touchActive = false;
+			touchTargetX = null;
+			touchPointerId = null;
 			playerX = width / 2;
 			keys.left = false;
 			keys.right = false;
@@ -482,6 +488,9 @@
 
 		function togglePause() {
 			Sound.init();
+			touchActive = false;
+			touchTargetX = null;
+			touchPointerId = null;
 			if (state === "playing") {
 				setState("paused");
 				showOverlay("paused");
@@ -511,6 +520,9 @@
 		function endGame() {
 			if (state !== "playing") return;
 			setState("over");
+			touchActive = false;
+			touchTargetX = null;
+			touchPointerId = null;
 			shake = 0.48;
 			skyFlash = 0.95;
 
@@ -620,7 +632,31 @@
 			var moveSpeed = 330 + Math.min(120, (stageLevel - 1) * 8);
 
 			var moveDir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-			if (moveDir !== 0) {
+			if (touchActive && touchTargetX !== null) {
+				var diff = touchTargetX - playerX;
+				if (Math.abs(diff) > 1.5) {
+					var tDir = diff > 0 ? 1 : -1;
+					// Phản hồi điều khiển cảm ứng tay cực nhạy và mượt mà trên điện thoại
+					var touchSpeed = Math.max(moveSpeed * 1.6, Math.abs(diff) * 28);
+					var moveAmt = Math.min(Math.abs(diff), touchSpeed * dt);
+					playerX += tDir * moveAmt;
+					playerX = Math.max(22, Math.min(width - 22, playerX));
+					Sound.playMove();
+
+					if (Math.random() < 0.4) {
+						particles.push({
+							x: playerX + (Math.random() - 0.5) * 12,
+							y: height - 23,
+							vx: -tDir * (Math.random() * 60 + 20),
+							vy: -Math.random() * 25,
+							life: 0.22,
+							maxLife: 0.22,
+							size: Math.random() * 2 + 1,
+							color: "rgba(100, 220, 255, 0.7)"
+						});
+					}
+				}
+			} else if (moveDir !== 0) {
 				playerX += moveDir * moveSpeed * dt;
 				playerX = Math.max(22, Math.min(width - 22, playerX));
 				Sound.playMove();
@@ -1107,6 +1143,43 @@
 			});
 		}
 
+		// Vẽ vòng định vị cảm ứng ngón tay trên điện thoại
+		function drawTouchIndicator(now) {
+			if (!touchActive || touchTargetX === null || state !== "playing") return;
+			var ground = height - 23;
+			var pulse = Math.sin(now * 0.016) * 2;
+			ctx.save();
+			ctx.shadowColor = "#5ce9ff";
+			ctx.shadowBlur = 12;
+
+			// Vạch laser định hướng nối giữa người chơi và ngón tay
+			if (Math.abs(touchTargetX - playerX) > 8) {
+				ctx.strokeStyle = "rgba(92, 233, 255, 0.35)";
+				ctx.lineWidth = 1.5;
+				ctx.setLineDash([4, 4]);
+				ctx.beginPath();
+				ctx.moveTo(playerX, ground - 10);
+				ctx.lineTo(touchTargetX, ground - 10);
+				ctx.stroke();
+				ctx.setLineDash([]);
+			}
+
+			// Vòng tròn cảm ứng neon
+			ctx.strokeStyle = "rgba(92, 233, 255, 0.85)";
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(touchTargetX, ground - 10, 16 + pulse, 0, Math.PI * 2);
+			ctx.stroke();
+
+			// Điểm chạm tâm ngón tay
+			ctx.fillStyle = "#ffffff";
+			ctx.beginPath();
+			ctx.arc(touchTargetX, ground - 10, 3.5, 0, Math.PI * 2);
+			ctx.fill();
+
+			ctx.restore();
+		}
+
 		function draw(now) {
 			ctx.save();
 			if (shake > 0) {
@@ -1115,6 +1188,7 @@
 			}
 			background(now);
 			balls.forEach(function (ball) { drawBall(ball, now); });
+			drawTouchIndicator(now);
 			drawPlayer(now);
 			drawEffects(now);
 			ctx.restore();
@@ -1183,9 +1257,62 @@
 			});
 		});
 
-		canvas.addEventListener("pointerdown", function () {
+		function updateTouchPos(clientX) {
+			var rect = canvas.getBoundingClientRect();
+			var scaleX = width / Math.max(1, rect.width);
+			var canvasX = (clientX - rect.left) * scaleX;
+			touchTargetX = Math.max(22, Math.min(width - 22, canvasX));
+		}
+
+		canvas.addEventListener("pointerdown", function (event) {
 			Sound.init();
 			canvas.focus({ preventScroll: true });
+			if (state !== "playing") return;
+			touchActive = true;
+			touchPointerId = event.pointerId;
+			updateTouchPos(event.clientX);
+			try { canvas.setPointerCapture(event.pointerId); } catch (e) {}
+			event.preventDefault();
+		});
+
+		canvas.addEventListener("pointermove", function (event) {
+			if (!touchActive) return;
+			if (touchPointerId !== null && event.pointerId !== touchPointerId) return;
+			updateTouchPos(event.clientX);
+			event.preventDefault();
+		});
+
+		function endTouch(event) {
+			if (touchPointerId !== null && event && event.pointerId !== undefined && event.pointerId !== touchPointerId) return;
+			touchActive = false;
+			touchTargetX = null;
+			touchPointerId = null;
+		}
+
+		["pointerup", "pointercancel", "lostpointercapture"].forEach(function (type) {
+			canvas.addEventListener(type, endTouch);
+		});
+
+		// Hỗ trợ Touch Events trực tiếp cho trình duyệt điện thoại di động
+		canvas.addEventListener("touchstart", function (event) {
+			Sound.init();
+			if (state !== "playing" || !event.touches.length) return;
+			touchActive = true;
+			updateTouchPos(event.touches[0].clientX);
+			event.preventDefault();
+		}, { passive: false });
+
+		canvas.addEventListener("touchmove", function (event) {
+			if (!touchActive || !event.touches.length) return;
+			updateTouchPos(event.touches[0].clientX);
+			event.preventDefault();
+		}, { passive: false });
+
+		["touchend", "touchcancel"].forEach(function (type) {
+			canvas.addEventListener(type, function () {
+				touchActive = false;
+				touchTargetX = null;
+			}, { passive: false });
 		});
 
 		resize();

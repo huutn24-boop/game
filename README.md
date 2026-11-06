@@ -8,7 +8,7 @@ Game né những quả cầu sét rơi liên tục trong khung cảnh neon.
 
 - Bấm **BẮT ĐẦU** để vào game.
 - Di chuyển bằng **A / D** hoặc **← / →**.
-- Trên điện thoại, giữ các nút mũi tên ở cạnh dưới.
+- Trên điện thoại: Có thể chạm vuốt trực tiếp ngón tay trên màn hình để điều khiển nhân vật né bóng mượt mà, hoặc giữ các nút mũi tên ở cạnh dưới.
 - Né bóng càng lâu càng tốt. Bóng rơi nhanh và dày hơn theo thời gian.
 - Né sát bóng để tăng combo. Kỷ lục được lưu trong trình duyệt.
 - Dùng **TẠM DỪNG** hoặc phím **P / Esc** để tạm dừng; bấm **CHƠI LẠI** để bắt đầu lượt mới.
