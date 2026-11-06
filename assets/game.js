@@ -1337,10 +1337,15 @@
 		});
 
 		function updateEquippedLook() {
-			if (!root.__tsProfile) return;
-			var look = root.__tsProfile.getLook();
-			playerColor = look.character && look.character.color ? look.character.color : "#bdf7ff";
-			effectColor = look.effect && look.effect.color ? look.effect.color : "#54cfff";
+			if (root.__tsProfile) {
+				var look = root.__tsProfile.getLook();
+				playerColor = look.character && look.character.color ? look.character.color : "#bdf7ff";
+				effectColor = look.effect && look.effect.color ? look.effect.color : "#54cfff";
+			}
+			requestAnimationFrame(function () {
+				resize();
+				canvas.focus({ preventScroll: true });
+			});
 		}
 		updateEquippedLook();
 		root.addEventListener("ts:enter-game", updateEquippedLook);
