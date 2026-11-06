@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Thunderstorm
- * Description: Game né bóng rơi theo phong cách neon. Dùng shortcode [thunderstorm_survival] để hiển thị.
- * Version: 1.0.0
+ * Description: Game né bóng rơi với sảnh, cửa hàng, nhân vật và hiệu ứng. Shortcode [thunderstorm_survival].
+ * Version: 1.1.0
  * Author: Site Admin
  */
 
@@ -11,9 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function thunderstorm_survival_register_assets() {
-	$version = '1.0.0';
-	wp_register_style( 'thunderstorm-survival', plugin_dir_url( __FILE__ ) . 'assets/game.css', array(), $version );
-	wp_register_script( 'thunderstorm-survival', plugin_dir_url( __FILE__ ) . 'assets/game.js', array(), $version, true );
+	$version = '1.1.0';
+	$base_url = plugin_dir_url( __FILE__ );
+	wp_register_style( 'thunderstorm-survival', $base_url . 'assets/game.css', array(), $version );
+	wp_register_script( 'thunderstorm-lobby', $base_url . 'assets/lobby.js', array(), $version, true );
+	wp_register_script( 'thunderstorm-survival', $base_url . 'assets/game.js', array( 'thunderstorm-lobby' ), $version, true );
 }
 add_action( 'wp_enqueue_scripts', 'thunderstorm_survival_register_assets' );
 
@@ -27,48 +29,185 @@ function thunderstorm_survival_shortcode() {
 	ob_start();
 	?>
 	<section class="ts-game" id="<?php echo esc_attr( $game_id ); ?>" data-ts-game aria-label="Thunderstorm">
-		<header class="ts-game__header">
-			<div class="ts-game__brand">
-				<p class="ts-game__eyebrow">NEON ARCADE <span>//</span> SURVIVAL MODE</p>
-				<h2>THUNDERSTORM</h2>
+<div class="ts-lobby" data-lobby>
+	<header class="ts-lobby__topbar">
+		<a class="ts-lobby__brand" href="#" aria-label="Thunderstorm, về sảnh">
+			<span class="ts-lobby__brand-mark">ϟ</span>
+			<span><strong>THUNDERSTORM</strong><small>STORM SURVIVAL NETWORK</small></span>
+		</a>
+		<div class="ts-lobby__top-actions">
+			<span class="ts-lobby__online"><i></i> HỆ THỐNG SẴN SÀNG</span>
+			<div class="ts-lobby__wallet" aria-label="Năng lượng hiện có"><span>ϟ</span><strong data-wallet-amount>900</strong><small>NĂNG LƯỢNG</small></div>
+			<button class="ts-lobby__shop-trigger" type="button" data-open-shop data-shop-start="item"><span>▣</span> CỬA HÀNG <b data-cart-count>0</b></button>
+		</div>
+	</header>
+
+	<div class="ts-lobby__hero">
+		<section class="ts-lobby__intro">
+			<p class="ts-lobby__eyebrow"><span>01</span> TRUNG TÂM ĐIỀU HÀNH</p>
+			<h1>THUNDER<br><em>STORM</em></h1>
+			<p class="ts-lobby__description">Bão sét đang kéo đến. Chuẩn bị nhân vật, chọn trang bị rồi bước vào thử thách sinh tồn.</p>
+
+			<div class="ts-lobby__record">
+				<div><span>KỶ LỤC CAO NHẤT</span><strong data-lobby-best>0</strong><small>ĐIỂM</small></div>
+				<div class="ts-lobby__record-divider"></div>
+				<div><span>LƯỢT CHƠI</span><strong data-lobby-runs>0</strong><small>PHIÊN</small></div>
 			</div>
-			<div class="ts-game__hud" aria-label="Thông tin ván chơi">
-				<div class="ts-game__stat"><span>CẤP ĐỘ</span><strong data-level>1</strong></div>
-				<div class="ts-game__stat"><span>THỜI GIAN</span><strong data-time>00:00.0</strong></div>
-				<div class="ts-game__stat"><span>ĐIỂM</span><strong data-score>0</strong></div>
-				<div class="ts-game__stat ts-game__stat--combo"><span>COMBO</span><strong data-combo>x0</strong></div>
+
+			<div class="ts-lobby__loadout">
+				<div class="ts-lobby__loadout-title"><span>TẢI TRANG BỊ</span><i>LOADOUT</i></div>
+				<button type="button" class="ts-lobby__loadout-item" data-open-shop data-shop-start="character">
+					<span class="ts-lobby__loadout-icon">◉</span>
+					<span><small>NHÂN VẬT</small><strong data-character-name>Người sống sót</strong></span>
+					<b>ĐỔI ↗</b>
+				</button>
+				<button type="button" class="ts-lobby__loadout-item" data-open-shop data-shop-start="effect">
+					<span class="ts-lobby__loadout-icon ts-lobby__loadout-icon--effect">✧</span>
+					<span><small>HIỆU ỨNG</small><strong data-effect-name>Hào quang băng</strong></span>
+					<b>ĐỔI ↗</b>
+				</button>
 			</div>
-		</header>
-		<div class="ts-game__frame">
-			<div class="ts-game__stage">
-				<canvas class="ts-game__canvas" data-canvas tabindex="0" role="img" aria-label="Dùng A, D hoặc phím mũi tên để di chuyển và né bóng."></canvas>
-				<div class="ts-game__status" aria-live="polite"><i></i><span data-status>BÃO ĐANG TẠM LẶNG</span></div>
-				<div class="ts-game__key-hint" aria-hidden="true">A / D <span>← / →</span> HOẶC CHẠM VUỐT</div>
-				<div class="ts-game__overlay" data-overlay role="status" aria-live="polite">
-					<div class="ts-game__card">
-						<p class="ts-game__kicker" data-kicker>THỬ THÁCH SINH TỒN</p>
-						<h3 data-title>Sẵn sàng né bóng?</h3>
-						<p data-copy>Những quả cầu sét sẽ rơi nhanh dần. Né càng lâu, điểm càng cao.</p>
-						<p class="ts-game__result" data-result hidden></p>
-						<button class="ts-game__start" type="button" data-start>BẮT ĐẦU</button>
-						<small>A / D, phím mũi tên hoặc chạm vuốt màn hình để né</small>
-					</div>
+
+			<div class="ts-lobby__cta-row">
+				<button class="ts-lobby__start" type="button" data-enter-game>
+					<span class="ts-lobby__start-icon">▶</span>
+					<span><strong>VÀO BÃO</strong><small>BẮT ĐẦU NHIỆM VỤ</small></span>
+					<span class="ts-lobby__start-arrow">↗</span>
+				</button>
+				<button class="ts-lobby__howto" type="button" data-lobby-help>⌨ <span>A / D hoặc ← / →</span></button>
+			</div>
+		</section>
+
+		<section class="ts-lobby__hangar" aria-label="Khu vực chuẩn bị nhân vật">
+			<div class="ts-lobby__hangar-label"><span>TRẠM NEO 07</span><b>ĐANG HOẠT ĐỘNG</b></div>
+			<div class="ts-lobby__storm">
+				<div class="ts-lobby__storm-ring ts-lobby__storm-ring--one"></div>
+				<div class="ts-lobby__storm-ring ts-lobby__storm-ring--two"></div>
+				<div class="ts-lobby__storm-core"><span>ϟ</span></div>
+				<i class="ts-lobby__spark ts-lobby__spark--one"></i>
+				<i class="ts-lobby__spark ts-lobby__spark--two"></i>
+				<i class="ts-lobby__spark ts-lobby__spark--three"></i>
+			</div>
+			<div class="ts-lobby__figure-wrap" data-avatar>
+				<div class="ts-lobby__figure-aura"></div>
+				<div class="ts-lobby__figure">
+					<i class="ts-lobby__figure-head"></i>
+					<i class="ts-lobby__figure-body"></i>
+					<i class="ts-lobby__figure-arm ts-lobby__figure-arm--left"></i>
+					<i class="ts-lobby__figure-arm ts-lobby__figure-arm--right"></i>
+					<i class="ts-lobby__figure-leg ts-lobby__figure-leg--left"></i>
+					<i class="ts-lobby__figure-leg ts-lobby__figure-leg--right"></i>
 				</div>
 			</div>
-			<div class="ts-game__controls">
-				<div class="ts-game__touch" aria-label="Điều khiển cảm ứng">
-					<button type="button" data-move="left" aria-label="Sang trái">←</button>
-					<button type="button" data-move="right" aria-label="Sang phải">→</button>
+			<div class="ts-lobby__platform"><i></i><b></b><span></span></div>
+			<div class="ts-lobby__floor-grid"></div>
+			<div class="ts-lobby__scene-hud"><span><i></i> PILOT ONLINE</span><b data-avatar-label>NEON SCOUT</b></div>
+			<div class="ts-lobby__hangar-corner ts-lobby__hangar-corner--left"></div>
+			<div class="ts-lobby__hangar-corner ts-lobby__hangar-corner--right"></div>
+		</section>
+
+		<aside class="ts-lobby__side">
+			<div class="ts-lobby__mission">
+				<div class="ts-lobby__panel-heading"><span>◈</span><div><small>NHIỆM VỤ ĐANG MỞ</small><strong>STORM SURVIVAL</strong></div><i>01</i></div>
+				<p>Né các quả cầu sét. Bão tăng tốc theo từng cấp.</p>
+				<div class="ts-lobby__mission-meta"><span>◷ VÔ HẠN</span><span>ϟ THƯỞNG THEO ĐIỂM</span></div>
+			</div>
+			<div class="ts-lobby__shop-card">
+				<div class="ts-lobby__shop-card-icon">▣</div>
+				<div><small>TRANG BỊ SẴN SÀNG?</small><strong>CỬA HÀNG BÃO</strong><p>Mua vật phẩm, nhân vật và hiệu ứng bằng năng lượng.</p></div>
+				<button type="button" data-open-shop data-shop-start="item">MỞ CỬA HÀNG <span>→</span></button>
+			</div>
+			<div class="ts-lobby__daily">
+				<span class="ts-lobby__daily-icon">✦</span>
+				<div><small>THƯỞNG TÂN BINH</small><strong>900 năng lượng</strong><span>Sẵn sàng để mua món đầu tiên</span></div>
+			</div>
+		</aside>
+	</div>
+
+	<footer class="ts-lobby__footer">
+		<span><i></i> KẾT NỐI ĐÃ MÃ HÓA</span>
+		<span>THUNDERSTORM // SURVIVAL PROTOCOL</span>
+		<span>PC: A / D · MOBILE: CHẠM VÀ KÉO</span>
+	</footer>
+
+	<div class="ts-store" data-store hidden>
+		<button class="ts-store__scrim" type="button" data-close-store aria-label="Đóng cửa hàng"></button>
+		<section class="ts-store__panel" role="dialog" aria-modal="true" aria-labelledby="ts-store-title">
+			<header class="ts-store__header">
+				<div><p>TRẠM TIẾP TẾ // SECTOR 07</p><h2 id="ts-store-title">CỬA HÀNG BÃO</h2><span>Mọi món hàng dùng năng lượng trong game, không thanh toán tiền thật.</span></div>
+				<div class="ts-store__header-actions">
+					<div class="ts-store__wallet"><span>ϟ</span><strong data-store-wallet>900</strong><small>NĂNG LƯỢNG</small></div>
+					<button type="button" class="ts-store__close" data-close-store aria-label="Đóng cửa hàng">×</button>
 				</div>
-				<p class="ts-game__record">KỶ LỤC <strong data-best>0</strong></p>
-				<div class="ts-game__actions">
-					<button type="button" data-sound aria-label="Bật hoặc tắt âm thanh">🔊 ÂM THANH</button>
-					<button type="button" data-pause>TẠM DỪNG</button>
-					<button type="button" data-restart>CHƠI LẠI</button>
+			</header>
+			<div class="ts-store__body">
+				<div class="ts-store__market">
+					<nav class="ts-store__tabs" aria-label="Danh mục cửa hàng">
+						<button type="button" data-store-tab="item" class="is-active">VẬT PHẨM <span>02</span></button>
+						<button type="button" data-store-tab="character">NHÂN VẬT <span>04</span></button>
+						<button type="button" data-store-tab="effect">HIỆU ỨNG <span>04</span></button>
+					</nav>
+					<div class="ts-store__products" data-store-products></div>
+				</div>
+				<aside class="ts-store__cart">
+					<div class="ts-store__cart-heading"><div><small>ĐƠN HÀNG</small><h3>Giỏ hàng</h3></div><span data-cart-count>0</span></div>
+					<div class="ts-store__cart-items" data-cart-items></div>
+					<div class="ts-store__cart-empty" data-cart-empty><span>▱</span><strong>Giỏ hàng đang trống</strong><small>Chọn món bạn muốn mua trong cửa hàng.</small></div>
+					<div class="ts-store__cart-total"><span>TỔNG CỘNG</span><strong>ϟ <b data-cart-total>0</b></strong></div>
+					<p class="ts-store__message" data-store-message aria-live="polite"></p>
+					<button type="button" class="ts-store__checkout" data-checkout disabled>THANH TOÁN <span>→</span></button>
+					<p class="ts-store__cart-note">Năng lượng được lưu trên trình duyệt này.</p>
+				</aside>
+			</div>
+		</section>
+	</div>
+	<div class="ts-toast" data-toast aria-live="polite" hidden></div>
+</div>
+<div class="ts-game__play-view" data-game-view hidden>
+	<header class="ts-game__header">
+		<div class="ts-game__brand">
+			<p class="ts-game__eyebrow">NEON ARCADE <span>//</span> SURVIVAL MODE</p>
+			<h2>THUNDERSTORM</h2>
+		</div>
+		<div class="ts-game__hud" aria-label="Thông tin ván chơi">
+			<div class="ts-game__stat"><span>CẤP ĐỘ</span><strong data-level>1</strong></div>
+			<div class="ts-game__stat"><span>THỜI GIAN</span><strong data-time>00:00.0</strong></div>
+			<div class="ts-game__stat"><span>ĐIỂM</span><strong data-score>0</strong></div>
+			<div class="ts-game__stat ts-game__stat--combo"><span>COMBO</span><strong data-combo>x0</strong></div>
+		</div>
+	</header>
+	<div class="ts-game__frame">
+		<div class="ts-game__stage">
+			<canvas class="ts-game__canvas" data-canvas tabindex="0" role="img" aria-label="Dùng A, D hoặc phím mũi tên để di chuyển và né bóng."></canvas>
+			<div class="ts-game__status" aria-live="polite"><i></i><span data-status>BÃO ĐANG TẠM LẶNG</span></div>
+			<div class="ts-game__key-hint" aria-hidden="true">A / D <span>← / →</span> HOẶC CHẠM VUỐT</div>
+			<div class="ts-game__overlay" data-overlay role="status" aria-live="polite">
+				<div class="ts-game__card">
+					<p class="ts-game__kicker" data-kicker>THỬ THÁCH SINH TỒN</p>
+					<h3 data-title>Sẵn sàng né bóng?</h3>
+					<p data-copy>Những quả cầu sét sẽ rơi nhanh dần. Né càng lâu, điểm càng cao.</p>
+					<p class="ts-game__result" data-result hidden></p>
+					<button class="ts-game__start" type="button" data-start>BẮT ĐẦU</button>
+					<small>A / D, phím mũi tên hoặc chạm vuốt màn hình để né</small>
 				</div>
 			</div>
 		</div>
-		<p class="ts-game__footnote">Sống sót càng lâu, bóng rơi càng nhanh. Né sát bóng để tăng combo.</p>
+		<div class="ts-game__controls">
+			<div class="ts-game__touch" aria-label="Điều khiển cảm ứng">
+				<button type="button" data-move="left" aria-label="Sang trái">←</button>
+				<button type="button" data-move="right" aria-label="Sang phải">→</button>
+			</div>
+			<p class="ts-game__record">KỶ LỤC <strong data-best>0</strong></p>
+			<div class="ts-game__actions">
+				<button type="button" data-sound aria-label="Bật hoặc tắt âm thanh">🔊 ÂM THANH</button>
+				<button type="button" data-pause>TẠM DỪNG</button>
+				<button type="button" data-restart>CHƠI LẠI</button>
+				<button type="button" data-return-lobby>SẢNH</button>
+			</div>
+		</div>
+	</div>
+	<p class="ts-game__footnote">Sống sót càng lâu, bóng rơi càng nhanh. Né sát bóng để tăng combo.</p>
+</div>
 	</section>
 	<?php
 	return ob_get_clean();

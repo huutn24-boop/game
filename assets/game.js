@@ -372,6 +372,8 @@
 		var touchTargetX = null;
 		var touchPointerId = null;
 		var endOverlayTimer = null;
+		var playerColor = "#bdf7ff";
+		var effectColor = "#54cfff";
 
 		try { highScore = Number(localStorage.getItem(storageKey)) || 0; } catch (error) {}
 		bestText.textContent = String(highScore);
@@ -568,6 +570,7 @@
 				bestText.textContent = String(highScore);
 				try { localStorage.setItem(storageKey, String(highScore)); } catch (error) {}
 			}
+			if (root.__tsProfile) root.__tsProfile.rewardRun(score, elapsed);
 			endOverlayTimer = window.setTimeout(function () {
 				endOverlayTimer = null;
 				showOverlay("over");
@@ -1061,9 +1064,9 @@
 			ctx.save();
 			ctx.lineCap = "round";
 			ctx.lineJoin = "round";
-			ctx.strokeStyle = "#bdf7ff";
+			ctx.strokeStyle = playerColor;
 			ctx.lineWidth = 3;
-			ctx.shadowColor = "#54cfff";
+			ctx.shadowColor = effectColor;
 			ctx.shadowBlur = 15;
 
 			// Đầu
@@ -1089,7 +1092,7 @@
 
 			// Khiên từ trường bảo vệ dưới chân
 			ctx.shadowBlur = 8;
-			ctx.strokeStyle = "rgba(80, 207, 255, .82)";
+			ctx.strokeStyle = effectColor;
 			ctx.lineWidth = 2;
 			ctx.beginPath();
 			ctx.ellipse(playerX, ground + 3, 20, 5, 0, 0, Math.PI * 2);
@@ -1332,6 +1335,15 @@
 				touchTargetX = null;
 			}, { passive: false });
 		});
+
+		function updateEquippedLook() {
+			if (!root.__tsProfile) return;
+			var look = root.__tsProfile.getLook();
+			playerColor = look.character && look.character.color ? look.character.color : "#bdf7ff";
+			effectColor = look.effect && look.effect.color ? look.effect.color : "#54cfff";
+		}
+		updateEquippedLook();
+		root.addEventListener("ts:enter-game", updateEquippedLook);
 
 		resize();
 		setState("ready");
