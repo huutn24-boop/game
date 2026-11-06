@@ -233,9 +233,15 @@
 	border-radius: 9px;
 	font-size: 9px;
 	letter-spacing: .12em;
-	transition: border-color .16s ease, color .16s ease;
+	transition: border-color .16s ease, color .16s ease, background-color .16s ease;
 }
 .ts-game__actions button:hover { color: white; border-color: var(--cyan); }
+.ts-game__actions button[data-sound] { min-width: 96px; }
+.ts-game__actions button[data-sound].is-muted {
+	color: #7b8fae;
+	border-color: rgba(90, 130, 180, .2);
+	background: rgba(8, 18, 38, .75);
+}
 .ts-game__touch { display: none; }
 .ts-game__footnote { margin: 12px 3px 0; color: #8399bf; font-size: 11px; }
 @keyframes ts-pulse { 50% { opacity: .42; transform: scale(.72); } }
@@ -260,8 +266,13 @@
 		touch-action: none;
 		user-select: none;
 	}
-	.ts-game__actions { grid-column: 2; grid-row: 2; }
-	.ts-game__actions button { padding: 0 9px; font-size: 8px; }
+	.ts-game__actions { grid-column: 2; grid-row: 2; gap: 6px; }
+	.ts-game__actions button { padding: 0 8px; font-size: 8px; min-height: 34px; }
+	.ts-game__actions button[data-sound] { min-width: 82px; }
+}
+@media (max-width: 440px) {
+	.ts-game__actions button { padding: 0 5px; font-size: 7.5px; letter-spacing: .06em; }
+	.ts-game__actions button[data-sound] { min-width: 70px; }
 }
 @media (max-width: 390px) {
 	.ts-game__stat { padding: 2px 3px; }

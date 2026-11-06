@@ -62,6 +62,7 @@ function thunderstorm_survival_shortcode() {
 				</div>
 				<p class="ts-game__record">KỶ LỤC <strong data-best>0</strong></p>
 				<div class="ts-game__actions">
+					<button type="button" data-sound aria-label="Bật hoặc tắt âm thanh">🔊 ÂM THANH</button>
 					<button type="button" data-pause>TẠM DỪNG</button>
 					<button type="button" data-restart>CHƠI LẠI</button>
 				</div>

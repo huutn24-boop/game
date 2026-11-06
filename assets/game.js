@@ -1,6 +1,339 @@
 (function () {
 	"use strict";
 
+	// --- BỘ TỔNG HỢP ÂM THANH SẤM SÉT VÀ ĐIỆN TỬ (WEB AUDIO API) ---
+	var Sound = (function () {
+		var AudioCtx = window.AudioContext || window.webkitAudioContext;
+		var ctx = null;
+		var masterGain = null;
+		var ambientGain = null;
+		var noiseBuffer = null;
+		var isMuted = false;
+		var lastMoveSound = 0;
+		var storageKey = "thunderstorm-survival-sound-muted";
+
+		try {
+			isMuted = localStorage.getItem(storageKey) === "true";
+		} catch (e) {}
+
+		function init() {
+			if (!AudioCtx || ctx) return;
+			try {
+				ctx = new AudioCtx();
+				masterGain = ctx.createGain();
+				masterGain.gain.setValueAtTime(isMuted ? 0 : 0.42, ctx.currentTime);
+				masterGain.connect(ctx.destination);
+
+				// Tạo buffer nhiễu hồng (Pink Noise) cho tiếng sấm, bão và tia lửa
+				var bufferSize = ctx.sampleRate * 2;
+				noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+				var output = noiseBuffer.getChannelData(0);
+				var b0 = 0, b1 = 0, b2 = 0;
+				for (var i = 0; i < bufferSize; i++) {
+					var white = Math.random() * 2 - 1;
+					b0 = 0.99886 * b0 + white * 0.0555179;
+					b1 = 0.99332 * b1 + white * 0.0750759;
+					b2 = 0.96900 * b2 + white * 0.1538520;
+					output[i] = (b0 + b1 + b2 + white * 0.05) * 0.2;
+				}
+
+				setupAmbient();
+			} catch (err) {
+				console.warn("Không thể khởi tạo Web Audio:", err);
+			}
+		}
+
+		function ensureRunning() {
+			init();
+			if (ctx && ctx.state === "suspended") {
+				ctx.resume();
+			}
+		}
+
+		function setupAmbient() {
+			if (!ctx || !noiseBuffer) return;
+			try {
+				var noise = ctx.createBufferSource();
+				noise.buffer = noiseBuffer;
+				noise.loop = true;
+
+				var filter = ctx.createBiquadFilter();
+				filter.type = "lowpass";
+				filter.frequency.setValueAtTime(260, ctx.currentTime);
+
+				ambientGain = ctx.createGain();
+				ambientGain.gain.setValueAtTime(0, ctx.currentTime);
+
+				noise.connect(filter);
+				filter.connect(ambientGain);
+				ambientGain.connect(masterGain);
+				noise.start(0);
+			} catch (err) {}
+		}
+
+		function setAmbientState(isPlaying, level) {
+			if (!ambientGain || !ctx) return;
+			var now = ctx.currentTime;
+			if (isPlaying && !isMuted) {
+				var targetVol = Math.min(0.18, 0.06 + ((level || 1) - 1) * 0.02);
+				ambientGain.gain.cancelScheduledValues(now);
+				ambientGain.gain.setTargetAtTime(targetVol, now, 0.4);
+			} else {
+				ambientGain.gain.cancelScheduledValues(now);
+				ambientGain.gain.setTargetAtTime(0.0001, now, 0.25);
+			}
+		}
+
+		function toggleMute() {
+			isMuted = !isMuted;
+			try {
+				localStorage.setItem(storageKey, isMuted ? "true" : "false");
+			} catch (e) {}
+
+			if (ctx && masterGain) {
+				var now = ctx.currentTime;
+				masterGain.gain.cancelScheduledValues(now);
+				masterGain.gain.setTargetAtTime(isMuted ? 0 : 0.42, now, 0.05);
+			}
+			if (!isMuted) ensureRunning();
+			return isMuted;
+		}
+
+		function playStart() {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = ctx.currentTime;
+			// Hợp âm khởi động bão sét điện tử
+			[329.63, 440, 554.37, 659.25, 880].forEach(function (freq, idx) {
+				var osc = ctx.createOscillator();
+				var gain = ctx.createGain();
+				osc.type = "sawtooth";
+				osc.frequency.setValueAtTime(freq, now + idx * 0.055);
+				gain.gain.setValueAtTime(0.11, now + idx * 0.055);
+				gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.055 + 0.24);
+
+				var filter = ctx.createBiquadFilter();
+				filter.type = "lowpass";
+				filter.frequency.setValueAtTime(1900, now);
+
+				osc.connect(filter);
+				filter.connect(gain);
+				gain.connect(masterGain);
+
+				osc.start(now + idx * 0.055);
+				osc.stop(now + idx * 0.055 + 0.25);
+			});
+
+			// Âm trầm sub-bass xung kích
+			var sub = ctx.createOscillator();
+			var subGain = ctx.createGain();
+			sub.type = "sine";
+			sub.frequency.setValueAtTime(130, now);
+			sub.frequency.exponentialRampToValueAtTime(36, now + 0.38);
+			subGain.gain.setValueAtTime(0.32, now);
+			subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+			sub.connect(subGain);
+			subGain.connect(masterGain);
+			sub.start(now);
+			sub.stop(now + 0.41);
+		}
+
+		function playZap(combo) {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = ctx.currentTime;
+			var baseFreq = Math.min(1900, 680 + (combo || 0) * 85);
+
+			// Tia điện xẹt quét nhanh
+			var osc = ctx.createOscillator();
+			var gain = ctx.createGain();
+			osc.type = "sawtooth";
+			osc.frequency.setValueAtTime(baseFreq, now);
+			osc.frequency.exponentialRampToValueAtTime(240, now + 0.095);
+
+			gain.gain.setValueAtTime(0.24, now);
+			gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+			var filter = ctx.createBiquadFilter();
+			filter.type = "bandpass";
+			filter.frequency.setValueAtTime(baseFreq * 1.15, now);
+			filter.Q.setValueAtTime(2.4, now);
+
+			osc.connect(filter);
+			filter.connect(gain);
+			gain.connect(masterGain);
+
+			osc.start(now);
+			osc.stop(now + 0.1);
+
+			// Nhiễu tĩnh điện giật
+			if (noiseBuffer) {
+				var noiseSource = ctx.createBufferSource();
+				noiseSource.buffer = noiseBuffer;
+				var noiseFilter = ctx.createBiquadFilter();
+				noiseFilter.type = "highpass";
+				noiseFilter.frequency.setValueAtTime(2400, now);
+
+				var noiseGain = ctx.createGain();
+				noiseGain.gain.setValueAtTime(0.18, now);
+				noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+
+				noiseSource.connect(noiseFilter);
+				noiseFilter.connect(noiseGain);
+				noiseGain.connect(masterGain);
+
+				noiseSource.start(now);
+				noiseSource.stop(now + 0.07);
+			}
+		}
+
+		function playThunderStrike() {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = ctx.currentTime;
+
+			// 1. Tiếng nổ xé toạc ban đầu (Crack)
+			if (noiseBuffer) {
+				var crack = ctx.createBufferSource();
+				crack.buffer = noiseBuffer;
+				var crackFilter = ctx.createBiquadFilter();
+				crackFilter.type = "bandpass";
+				crackFilter.frequency.setValueAtTime(3400, now);
+				crackFilter.Q.setValueAtTime(1.1, now);
+
+				var crackGain = ctx.createGain();
+				crackGain.gain.setValueAtTime(0.55, now);
+				crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+				crack.connect(crackFilter);
+				crackFilter.connect(crackGain);
+				crackGain.connect(masterGain);
+
+				crack.start(now);
+				crack.stop(now + 0.1);
+			}
+
+			// 2. Tiếng sấm rền lan tỏa (Thunder Rumble)
+			if (noiseBuffer) {
+				var rumble = ctx.createBufferSource();
+				rumble.buffer = noiseBuffer;
+				var rumbleFilter = ctx.createBiquadFilter();
+				rumbleFilter.type = "lowpass";
+				rumbleFilter.frequency.setValueAtTime(780, now);
+				rumbleFilter.frequency.exponentialRampToValueAtTime(55, now + 1.8);
+
+				var rumbleGain = ctx.createGain();
+				rumbleGain.gain.setValueAtTime(0.65, now);
+				rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 1.85);
+
+				rumble.connect(rumbleFilter);
+				rumbleFilter.connect(rumbleGain);
+				rumbleGain.connect(masterGain);
+
+				rumble.start(now);
+				rumble.stop(now + 1.9);
+			}
+
+			// 3. Xung điện giật méo tiếng (Distorted Electric Arc)
+			var saw = ctx.createOscillator();
+			var sawGain = ctx.createGain();
+			saw.type = "sawtooth";
+			saw.frequency.setValueAtTime(360, now);
+			saw.frequency.exponentialRampToValueAtTime(45, now + 0.36);
+			sawGain.gain.setValueAtTime(0.35, now);
+			sawGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+			saw.connect(sawGain);
+			sawGain.connect(masterGain);
+			saw.start(now);
+			saw.stop(now + 0.41);
+
+			// 4. Âm trầm cực mạnh rung chuyển (Sub-bass Shockwave)
+			var sub = ctx.createOscillator();
+			var subGain = ctx.createGain();
+			sub.type = "sine";
+			sub.frequency.setValueAtTime(115, now);
+			sub.frequency.exponentialRampToValueAtTime(26, now + 0.65);
+			subGain.gain.setValueAtTime(0.7, now);
+			subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+			sub.connect(subGain);
+			subGain.connect(masterGain);
+			sub.start(now);
+			sub.stop(now + 0.72);
+		}
+
+		function playLevelUp() {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = ctx.currentTime;
+			[523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+				var osc = ctx.createOscillator();
+				var g = ctx.createGain();
+				osc.type = "triangle";
+				osc.frequency.setValueAtTime(f, now + i * 0.075);
+				g.gain.setValueAtTime(0.16, now + i * 0.075);
+				g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.075 + 0.24);
+				osc.connect(g);
+				g.connect(masterGain);
+				osc.start(now + i * 0.075);
+				osc.stop(now + i * 0.075 + 0.25);
+			});
+		}
+
+		function playMove() {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = performance.now();
+			if (now - lastMoveSound < 110) return;
+			lastMoveSound = now;
+
+			var audioTime = ctx.currentTime;
+			var osc = ctx.createOscillator();
+			var gain = ctx.createGain();
+			osc.type = "sine";
+			osc.frequency.setValueAtTime(340, audioTime);
+			osc.frequency.exponentialRampToValueAtTime(580, audioTime + 0.04);
+			gain.gain.setValueAtTime(0.04, audioTime);
+			gain.gain.exponentialRampToValueAtTime(0.001, audioTime + 0.045);
+			osc.connect(gain);
+			gain.connect(masterGain);
+			osc.start(audioTime);
+			osc.stop(audioTime + 0.05);
+		}
+
+		function playGroundSnap() {
+			ensureRunning();
+			if (!ctx || isMuted) return;
+			var now = ctx.currentTime;
+			var osc = ctx.createOscillator();
+			var gain = ctx.createGain();
+			osc.type = "sine";
+			osc.frequency.setValueAtTime(170, now);
+			osc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+			gain.gain.setValueAtTime(0.06, now);
+			gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
+			osc.connect(gain);
+			gain.connect(masterGain);
+			osc.start(now);
+			osc.stop(now + 0.09);
+		}
+
+		return {
+			init: ensureRunning,
+			isMuted: function () { return isMuted; },
+			toggleMute: toggleMute,
+			playStart: playStart,
+			playZap: playZap,
+			playThunderStrike: playThunderStrike,
+			playLevelUp: playLevelUp,
+			playMove: playMove,
+			playGroundSnap: playGroundSnap,
+			setAmbientState: setAmbientState
+		};
+	})();
+
+	// --- CÀI ĐẶT TRÒ CHƠI ---
 	document.querySelectorAll("[data-ts-game]").forEach(function (root) {
 		var canvas = root.querySelector("[data-canvas]");
 		var ctx = canvas && canvas.getContext("2d");
@@ -10,6 +343,7 @@
 		var start = root.querySelector("[data-start]");
 		var pause = root.querySelector("[data-pause]");
 		var restart = root.querySelector("[data-restart]");
+		var soundBtn = root.querySelector("[data-sound]");
 		var status = root.querySelector("[data-status]");
 		var levelText = root.querySelector("[data-level]");
 		var timeText = root.querySelector("[data-time]");
@@ -20,6 +354,7 @@
 		var title = root.querySelector("[data-title]");
 		var copy = root.querySelector("[data-copy]");
 		var result = root.querySelector("[data-result]");
+
 		var state = "ready";
 		var keys = { left: false, right: false };
 		var width = 1, height = 1, ratio = 1, lastFrame = 0;
@@ -27,13 +362,41 @@
 		var playerX = 0, shake = 0, balls = [], stars = [];
 		var highScore = 0, playerRadius = 11;
 		var storageKey = "thunderstorm-survival-best-v1";
+		var lastLevel = 1;
+		var skyFlash = 0;
+		var particles = [];
+		var shockwaves = [];
+		var comboFloaters = [];
+		var strikeBolts = [];
 
 		try { highScore = Number(localStorage.getItem(storageKey)) || 0; } catch (error) {}
 		bestText.textContent = String(highScore);
 
+		function updateSoundButton() {
+			if (!soundBtn) return;
+			var muted = Sound.isMuted();
+			soundBtn.textContent = muted ? "🔇 TẮT ÂM" : "🔊 ÂM THANH";
+			soundBtn.setAttribute("aria-label", muted ? "Bật âm thanh" : "Tắt âm thanh");
+			if (muted) {
+				soundBtn.classList.add("is-muted");
+			} else {
+				soundBtn.classList.remove("is-muted");
+			}
+		}
+		updateSoundButton();
+
+		if (soundBtn) {
+			soundBtn.addEventListener("click", function () {
+				Sound.toggleMute();
+				updateSoundButton();
+				soundBtn.blur();
+			});
+		}
+
 		function setState(next) {
 			state = next;
 			root.setAttribute("data-state", next);
+			Sound.setAmbientState(next === "playing", level());
 		}
 
 		function level() { return Math.floor(elapsed / 15) + 1; }
@@ -73,7 +436,7 @@
 				status.textContent = "TRÒ CHƠI ĐANG TẠM DỪNG";
 			} else {
 				kicker.textContent = "KẾT THÚC LƯỢT CHƠI";
-				title.textContent = "Bóng đã chạm bạn!";
+				title.textContent = "Sét đã đánh trúng bạn!";
 				copy.textContent = "Bạn đã sống sót " + timeLabel(elapsed) + ".";
 				result.innerHTML = "ĐIỂM <strong>" + score + "</strong> &nbsp;·&nbsp; KỶ LỤC <strong>" + highScore + "</strong>";
 				result.hidden = false;
@@ -84,6 +447,7 @@
 		}
 
 		function beginGame(forceRestart) {
+			Sound.init();
 			if (state === "paused" && !forceRestart) {
 				setState("playing");
 				overlay.hidden = true;
@@ -91,6 +455,7 @@
 				updatePauseLabel();
 				return;
 			}
+			Sound.playStart();
 			setState("playing");
 			elapsed = 0;
 			score = 0;
@@ -98,7 +463,13 @@
 			comboTimer = 0;
 			spawnTimer = 0.55;
 			shake = 0;
+			skyFlash = 0.35;
+			lastLevel = 1;
 			balls = [];
+			particles = [];
+			shockwaves = [];
+			comboFloaters = [];
+			strikeBolts = [];
 			playerX = width / 2;
 			keys.left = false;
 			keys.right = false;
@@ -110,6 +481,7 @@
 		}
 
 		function togglePause() {
+			Sound.init();
 			if (state === "playing") {
 				setState("paused");
 				showOverlay("paused");
@@ -118,10 +490,58 @@
 			}
 		}
 
+		function spawnSparks(x, y, count, baseColor, spreadSpeed) {
+			spreadSpeed = spreadSpeed || 140;
+			for (var i = 0; i < count; i++) {
+				var angle = Math.random() * Math.PI * 2;
+				var spd = Math.random() * spreadSpeed + 30;
+				particles.push({
+					x: x,
+					y: y,
+					vx: Math.cos(angle) * spd,
+					vy: Math.sin(angle) * spd - (Math.random() * 45),
+					life: Math.random() * 0.45 + 0.2,
+					maxLife: 0.65,
+					size: Math.random() * 2.8 + 1.2,
+					color: baseColor || "#5ce9ff"
+				});
+			}
+		}
+
 		function endGame() {
 			if (state !== "playing") return;
 			setState("over");
-			shake = 0.32;
+			shake = 0.48;
+			skyFlash = 0.95;
+
+			var playerY = height - 47;
+			// Tạo tia sét khổng lồ giáng thẳng từ trời xuống người chơi
+			strikeBolts.push({
+				x1: playerX + (Math.random() - 0.5) * 40,
+				y1: 0,
+				x2: playerX,
+				y2: playerY,
+				width: 5.5,
+				color: "#ffffff",
+				glow: "#5ce9ff",
+				life: 0.38,
+				maxLife: 0.38
+			});
+
+			spawnSparks(playerX, playerY, 45, "#ffffff", 260);
+			spawnSparks(playerX, playerY, 35, "#5ce9ff", 190);
+
+			shockwaves.push({
+				x: playerX,
+				y: height - 23,
+				r: 5,
+				maxR: Math.max(90, width * 0.28),
+				alpha: 1,
+				color: "#5ce9ff"
+			});
+
+			Sound.playThunderStrike();
+
 			if (score > highScore) {
 				highScore = score;
 				bestText.textContent = String(highScore);
@@ -151,15 +571,30 @@
 			});
 		}
 
+		// --- TẠO QUẢ BÓNG SÉT RƠI ---
 		function addBall() {
 			var radius = 13 + Math.random() * 11;
+			// Phân loại bóng sét: Xanh cyan (chuẩn), Tím sét (năng lượng cao), Vàng rực (siêu tích điện)
+			var roll = Math.random();
+			var type = "cyan";
+			if (roll > 0.78) {
+				type = "violet";
+			} else if (roll > 0.58) {
+				type = "gold";
+			}
+
 			balls.push({
 				x: radius + 5 + Math.random() * Math.max(1, width - radius * 2 - 10),
-				y: -radius - 8,
+				y: -radius - 15,
 				r: radius,
-				vx: (Math.random() - 0.5) * 35,
+				vx: (Math.random() - 0.5) * 38,
 				phase: Math.random() * Math.PI * 2,
-				near: false
+				type: type,
+				arcs: [],
+				arcTimer: 0,
+				trail: [],
+				near: false,
+				groundHit: false
 			});
 		}
 
@@ -168,13 +603,44 @@
 			elapsed += dt;
 			score = Math.max(score, Math.floor(elapsed * 12));
 			var stageLevel = level();
-			var fallSpeed = Math.min(760, 195 + elapsed * 2.8 + (stageLevel - 1) * 20);
-			var moveSpeed = 325 + Math.min(115, (stageLevel - 1) * 8);
-			playerX += ((keys.right ? 1 : 0) - (keys.left ? 1 : 0)) * moveSpeed * dt;
-			playerX = Math.max(22, Math.min(width - 22, playerX));
+
+			if (stageLevel > lastLevel) {
+				lastLevel = stageLevel;
+				skyFlash = 0.45;
+				Sound.playLevelUp();
+				Sound.setAmbientState(true, stageLevel);
+			}
+
+			// Thỉnh thoảng có chớp sấm chân trời ngẫu nhiên khi bão lớn
+			if (Math.random() < 0.007 && skyFlash <= 0.05) {
+				skyFlash = 0.22;
+			}
+
+			var fallSpeed = Math.min(780, 195 + elapsed * 2.8 + (stageLevel - 1) * 20);
+			var moveSpeed = 330 + Math.min(120, (stageLevel - 1) * 8);
+
+			var moveDir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+			if (moveDir !== 0) {
+				playerX += moveDir * moveSpeed * dt;
+				playerX = Math.max(22, Math.min(width - 22, playerX));
+				Sound.playMove();
+				// Bụi tàn điện khi di chuyển
+				if (Math.random() < 0.35) {
+					particles.push({
+						x: playerX + (Math.random() - 0.5) * 12,
+						y: height - 23,
+						vx: -moveDir * (Math.random() * 60 + 20),
+						vy: -Math.random() * 25,
+						life: 0.22,
+						maxLife: 0.22,
+						size: Math.random() * 2 + 1,
+						color: "rgba(100, 220, 255, 0.7)"
+					});
+				}
+			}
 
 			spawnTimer -= dt;
-			var interval = Math.max(0.32, 0.92 - elapsed * 0.0046);
+			var interval = Math.max(0.31, 0.92 - elapsed * 0.0048);
 			while (spawnTimer <= 0) {
 				addBall();
 				spawnTimer += interval;
@@ -187,22 +653,179 @@
 				ball.y += fallSpeed * dt;
 				ball.x += ball.vx * dt + Math.sin(elapsed * 1.8 + ball.phase) * 8 * dt;
 				ball.x = Math.max(ball.r, Math.min(width - ball.r, ball.x));
+
+				// Cập nhật vết đuôi tia sét rơi
+				ball.trail.push({ x: ball.x, y: ball.y });
+				if (ball.trail.length > 5) ball.trail.shift();
+
+				// Phát tia lửa tàn điện rơi theo mỗi quả bóng sét
+				if (Math.random() < 0.45) {
+					var sparkColor = ball.type === "violet" ? "#e57cff" : (ball.type === "gold" ? "#ffd55e" : "#5ce9ff");
+					particles.push({
+						x: ball.x + (Math.random() - 0.5) * ball.r,
+						y: ball.y - ball.r * 0.5 + (Math.random() - 0.5) * 6,
+						vx: (Math.random() - 0.5) * 40,
+						vy: -Math.random() * 55 - 10,
+						life: Math.random() * 0.28 + 0.12,
+						maxLife: 0.4,
+						size: Math.random() * 2.2 + 1,
+						color: sparkColor
+					});
+				}
+
+				// Cập nhật các nhánh tia sét giật xung quanh bóng
+				ball.arcTimer -= dt;
+				if (ball.arcTimer <= 0) {
+					ball.arcTimer = 0.045 + Math.random() * 0.035;
+					var arcCount = 4 + Math.floor(Math.random() * 3);
+					ball.arcs = [];
+					for (var a = 0; a < arcCount; a++) {
+						var angle = (a / arcCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+						var length = ball.r * (1.15 + Math.random() * 0.55);
+						ball.arcs.push({
+							angle: angle,
+							length: length,
+							jitter1: (Math.random() - 0.5) * ball.r * 0.45,
+							jitter2: (Math.random() - 0.5) * ball.r * 0.45
+						});
+					}
+				}
+
 				var dx = ball.x - playerX, dy = ball.y - playerY;
 				var distance = Math.sqrt(dx * dx + dy * dy);
+
+				// Va chạm với người chơi: Game Over
 				if (distance < ball.r + playerRadius) {
 					endGame();
 					break;
 				}
-				if (!ball.near && distance < ball.r + playerRadius + 25 && ball.y > playerY - 39) {
+
+				// Né sát quả bóng (Graze / Near Miss)
+				if (!ball.near && distance < ball.r + playerRadius + 28 && ball.y > playerY - 39) {
 					ball.near = true;
 					combo += 1;
 					comboTimer = 3.3;
-					score += 18 + Math.min(combo, 10) * 2;
+					var bonus = 18 + Math.min(combo, 10) * 2;
+					score += bonus;
+
+					// Tia điện hồ quang phóng giữa bóng sét và người chơi
+					strikeBolts.push({
+						x1: ball.x,
+						y1: ball.y,
+						x2: playerX,
+						y2: playerY - 10,
+						width: 2.2,
+						color: "#ffffff",
+						glow: ball.type === "gold" ? "#ffcc33" : "#5ce9ff",
+						life: 0.18,
+						maxLife: 0.18
+					});
+
+					var comboColor = combo > 4 ? "#ffd58a" : "#78e8ff";
+					spawnSparks((ball.x + playerX) * 0.5, (ball.y + playerY) * 0.5, 14, comboColor, 120);
+
+					comboFloaters.push({
+						x: playerX,
+						y: playerY - 35,
+						text: "+" + bonus + " (x" + combo + ")",
+						vy: -48,
+						alpha: 1,
+						color: comboColor
+					});
+
+					Sound.playZap(combo);
 				}
-				if (ball.y - ball.r > height + 8) balls.splice(i, 1);
+
+				// Chạm mặt đất: Tạo hiệu ứng sóng điện và tóe tia lửa
+				if (!ball.groundHit && ball.y >= height - 32) {
+					ball.groundHit = true;
+					Sound.playGroundSnap();
+					shockwaves.push({
+						x: ball.x,
+						y: height - 23,
+						r: 3,
+						maxR: ball.r * 2.2,
+						alpha: 0.85,
+						color: ball.type === "violet" ? "#d25fff" : (ball.type === "gold" ? "#ffbc36" : "#5ce9ff")
+					});
+					spawnSparks(ball.x, height - 23, 8, ball.type === "violet" ? "#e28aff" : "#72edff", 90);
+				}
+
+				// Xóa bóng khi ra khỏi màn hình
+				if (ball.y - ball.r > height + 24) {
+					balls.splice(i, 1);
+				}
 			}
+
+			// Cập nhật hạt tia lửa (particles)
+			for (var p = particles.length - 1; p >= 0; p--) {
+				var pt = particles[p];
+				pt.life -= dt;
+				if (pt.life <= 0) {
+					particles.splice(p, 1);
+					continue;
+				}
+				pt.x += pt.vx * dt;
+				pt.y += pt.vy * dt;
+				pt.vy += 150 * dt; // Trọng lực nhẹ rơi xuống
+				pt.vx *= 0.985;
+			}
+
+			// Cập nhật vòng sóng điện mặt đất (shockwaves)
+			for (var w = shockwaves.length - 1; w >= 0; w--) {
+				var sw = shockwaves[w];
+				sw.r += (sw.maxR - sw.r) * 12 * dt;
+				sw.alpha -= 2.2 * dt;
+				if (sw.alpha <= 0 || sw.r >= sw.maxR - 1) {
+					shockwaves.splice(w, 1);
+				}
+			}
+
+			// Cập nhật chữ combo bay (comboFloaters)
+			for (var f = comboFloaters.length - 1; f >= 0; f--) {
+				var cf = comboFloaters[f];
+				cf.y += cf.vy * dt;
+				cf.alpha -= 1.35 * dt;
+				if (cf.alpha <= 0) {
+					comboFloaters.splice(f, 1);
+				}
+			}
+
+			// Cập nhật tia sét phóng (strikeBolts)
+			for (var b = strikeBolts.length - 1; b >= 0; b--) {
+				var sb = strikeBolts[b];
+				sb.life -= dt;
+				if (sb.life <= 0) {
+					strikeBolts.splice(b, 1);
+				}
+			}
+
 			score = Math.max(score, Math.floor(elapsed * 12));
 			updateHud();
+		}
+
+		// Vẽ đường tia sét răng cưa tự nhiên (Jagged Lightning Bolt)
+		function drawLightningBolt(x1, y1, x2, y2, displace, segments, width, coreColor, glowColor) {
+			ctx.save();
+			ctx.shadowColor = glowColor;
+			ctx.shadowBlur = 14;
+			ctx.strokeStyle = coreColor;
+			ctx.lineWidth = width;
+			ctx.lineCap = "round";
+			ctx.lineJoin = "round";
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+
+			var dx = (x2 - x1) / segments;
+			var dy = (y2 - y1) / segments;
+			for (var s = 1; s < segments; s++) {
+				var px = x1 + dx * s + (Math.random() - 0.5) * displace;
+				var py = y1 + dy * s + (Math.random() - 0.5) * displace;
+				ctx.lineTo(px, py);
+			}
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+			ctx.restore();
 		}
 
 		function background(now) {
@@ -212,6 +835,13 @@
 			gradient.addColorStop(1, "#061a3b");
 			ctx.fillStyle = gradient;
 			ctx.fillRect(0, 0, width, height);
+
+			// Ánh sáng chớp sấm sét bầu trời (Sky Lightning Flash)
+			if (skyFlash > 0.005) {
+				ctx.fillStyle = "rgba(165, 230, 255, " + (skyFlash * 0.42) + ")";
+				ctx.fillRect(0, 0, width, height);
+				skyFlash = Math.max(0, skyFlash - 0.035);
+			}
 
 			var glow = ctx.createRadialGradient(width * 0.5, height * 0.42, 5, width * 0.5, height * 0.42, width * 0.72);
 			glow.addColorStop(0, "rgba(29, 94, 194, .19)");
@@ -261,37 +891,112 @@
 			ctx.shadowBlur = 0;
 		}
 
-		function drawBall(ball) {
+		// --- VẼ QUẢ BÓNG SÉT RƠI (BALL LIGHTNING) VỚI ĐẦY ĐỦ HIỆU ỨNG TIA ĐIỆN VÀ TÀN LỬA ---
+		function drawBall(ball, now) {
+			ctx.save();
+			var r = ball.r;
+			var pulse = Math.sin(now * 0.016 + ball.phase) * 1.5;
+			var effectiveR = Math.max(6, r + pulse);
+
+			// Thiết lập bảng màu sét tùy theo loại bóng
+			var glowColor = "#4ebaff";
+			var edgeColor = "rgba(47, 135, 255, .78)";
+			var midColor = "#76d7ff";
+			var sparkColor = "#b8f4ff";
+
+			if (ball.type === "violet") {
+				glowColor = "#d64aff";
+				edgeColor = "rgba(165, 30, 255, .82)";
+				midColor = "#d982ff";
+				sparkColor = "#fcd4ff";
+			} else if (ball.type === "gold") {
+				glowColor = "#ffb020";
+				edgeColor = "rgba(255, 130, 0, .85)";
+				midColor = "#ffd666";
+				sparkColor = "#fff7c7";
+			}
+
+			// 1. Đuôi sét kéo dài ngược chiều rơi (Lightning Comet Tail)
+			if (ball.trail && ball.trail.length > 1) {
+				ctx.save();
+				ctx.strokeStyle = glowColor;
+				ctx.shadowColor = glowColor;
+				ctx.shadowBlur = 10;
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.moveTo(ball.trail[0].x, ball.trail[0].y);
+				for (var t = 1; t < ball.trail.length; t++) {
+					var jitter = (Math.random() - 0.5) * 6;
+					ctx.lineTo(ball.trail[t].x + jitter, ball.trail[t].y);
+				}
+				ctx.stroke();
+				ctx.restore();
+			}
+
+			// 2. Vệt tia sét kéo ngược lên trên đầu quả bóng
+			ctx.save();
+			ctx.strokeStyle = sparkColor;
+			ctx.shadowColor = glowColor;
+			ctx.shadowBlur = 16;
+			ctx.lineWidth = 2.2;
+			ctx.beginPath();
+			ctx.moveTo(ball.x - r * 0.35, ball.y - r * 2.6);
+			ctx.lineTo(ball.x + (Math.random() - 0.5) * 8, ball.y - r * 1.7);
+			ctx.lineTo(ball.x - (Math.random() - 0.5) * 6, ball.y - r * 0.9);
+			ctx.stroke();
+			ctx.restore();
+
+			// 3. Vầng hào quang ngoài (Outer Corona Glow)
 			ctx.save();
 			ctx.translate(ball.x, ball.y);
-			ctx.strokeStyle = "rgba(92, 199, 255, .33)";
-			ctx.lineWidth = 2;
-			ctx.shadowColor = "#51bcff";
-			ctx.shadowBlur = 18;
-			ctx.beginPath();
-			ctx.moveTo(-ball.r * 0.34, -ball.r * 2.45);
-			ctx.lineTo(ball.r * 0.2, -ball.r * 1.75);
-			ctx.lineTo(-ball.r * 0.12, -ball.r * 1.1);
-			ctx.stroke();
+			ctx.shadowColor = glowColor;
+			ctx.shadowBlur = 28 + Math.abs(pulse) * 4;
 
-			ctx.shadowColor = "#4ebaff";
-			ctx.shadowBlur = 28;
-			var orb = ctx.createRadialGradient(-ball.r * 0.25, -ball.r * 0.32, 1, 0, 0, ball.r * 1.1);
+			var orb = ctx.createRadialGradient(-r * 0.22, -r * 0.28, 1, 0, 0, effectiveR * 1.25);
 			orb.addColorStop(0, "#ffffff");
-			orb.addColorStop(0.28, "#d9faff");
-			orb.addColorStop(0.62, "#76d7ff");
-			orb.addColorStop(1, "rgba(47, 135, 255, .78)");
+			orb.addColorStop(0.24, sparkColor);
+			orb.addColorStop(0.6, midColor);
+			orb.addColorStop(0.92, edgeColor);
+			orb.addColorStop(1, "rgba(0, 0, 0, 0)");
+
 			ctx.fillStyle = orb;
 			ctx.beginPath();
-			ctx.arc(0, 0, ball.r, 0, Math.PI * 2);
+			ctx.arc(0, 0, effectiveR, 0, Math.PI * 2);
 			ctx.fill();
 
+			// 4. Các nhánh tia sét nhỏ co giật xung quanh quả cầu (Crackling Arcs)
+			ctx.shadowBlur = 12;
+			ctx.strokeStyle = "#ffffff";
+			ctx.lineWidth = 1.6;
+			ctx.lineCap = "round";
+			if (ball.arcs && ball.arcs.length) {
+				for (var a = 0; a < ball.arcs.length; a++) {
+					var arc = ball.arcs[a];
+					var midDist = arc.length * 0.55;
+					var endDist = arc.length;
+					var cosA = Math.cos(arc.angle);
+					var sinA = Math.sin(arc.angle);
+					var normX = -sinA;
+					var normY = cosA;
+
+					ctx.beginPath();
+					ctx.moveTo(cosA * (r * 0.4), sinA * (r * 0.4));
+					ctx.lineTo(cosA * midDist + normX * arc.jitter1, sinA * midDist + normY * arc.jitter1);
+					ctx.lineTo(cosA * endDist + normX * arc.jitter2, sinA * endDist + normY * arc.jitter2);
+					ctx.stroke();
+				}
+			}
+
+			// 5. Vòng ion hóa sáng quanh lõi (Ionization Ring)
 			ctx.shadowBlur = 0;
-			ctx.strokeStyle = "rgba(188, 239, 255, .82)";
-			ctx.lineWidth = 1.4;
+			ctx.strokeStyle = sparkColor;
+			ctx.lineWidth = 1.5;
 			ctx.beginPath();
-			ctx.arc(0, 0, ball.r * 0.72, -0.55, 1.6);
+			var ringRot = (now * 0.004 + ball.phase) % (Math.PI * 2);
+			ctx.arc(0, 0, effectiveR * 0.72, ringRot, ringRot + 2.1);
 			ctx.stroke();
+
+			ctx.restore();
 			ctx.restore();
 		}
 
@@ -306,9 +1011,13 @@
 			ctx.lineWidth = 3;
 			ctx.shadowColor = "#54cfff";
 			ctx.shadowBlur = 15;
+
+			// Đầu
 			ctx.beginPath();
 			ctx.arc(playerX, head, 8, 0, Math.PI * 2);
 			ctx.stroke();
+
+			// Thân và tứ chi
 			ctx.beginPath();
 			ctx.moveTo(playerX, head + 9);
 			ctx.lineTo(playerX, ground - 17);
@@ -323,24 +1032,91 @@
 			ctx.moveTo(playerX, ground - 17);
 			ctx.lineTo(playerX + 10 - step, ground);
 			ctx.stroke();
-			ctx.shadowBlur = 0;
+
+			// Khiên từ trường bảo vệ dưới chân
+			ctx.shadowBlur = 8;
 			ctx.strokeStyle = "rgba(80, 207, 255, .82)";
 			ctx.lineWidth = 2;
 			ctx.beginPath();
 			ctx.ellipse(playerX, ground + 3, 20, 5, 0, 0, Math.PI * 2);
 			ctx.stroke();
+
+			// Hào quang bảo vệ nhẹ nhấp nháy
+			if (state === "playing") {
+				var auraPulse = Math.sin(now * 0.008) * 2;
+				ctx.strokeStyle = "rgba(120, 230, 255, 0.24)";
+				ctx.lineWidth = 1.2;
+				ctx.beginPath();
+				ctx.arc(playerX, ground - 22, 24 + auraPulse, 0, Math.PI * 2);
+				ctx.stroke();
+			}
+
 			ctx.restore();
+		}
+
+		// Vẽ các hiệu ứng phụ: Sóng chấn điện, Hạt tàn lửa, Chữ điểm bay, Tia sét giáng xuống
+		function drawEffects(now) {
+			// 1. Vẽ vòng sóng điện mặt đất (Shockwaves)
+			shockwaves.forEach(function (sw) {
+				ctx.save();
+				ctx.strokeStyle = sw.color;
+				ctx.shadowColor = sw.color;
+				ctx.shadowBlur = 10;
+				ctx.globalAlpha = Math.max(0, sw.alpha);
+				ctx.lineWidth = 2.5;
+				ctx.beginPath();
+				ctx.ellipse(sw.x, sw.y, sw.r, sw.r * 0.32, 0, 0, Math.PI * 2);
+				ctx.stroke();
+				ctx.restore();
+			});
+
+			// 2. Vẽ hạt tàn lửa điện rơi (Particles)
+			particles.forEach(function (pt) {
+				ctx.save();
+				var alpha = Math.max(0, pt.life / pt.maxLife);
+				ctx.fillStyle = pt.color;
+				ctx.shadowColor = pt.color;
+				ctx.shadowBlur = 6;
+				ctx.globalAlpha = alpha;
+				ctx.beginPath();
+				ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.restore();
+			});
+
+			// 3. Vẽ tia sét đánh (Strike Bolts)
+			strikeBolts.forEach(function (sb) {
+				var alpha = Math.max(0, sb.life / sb.maxLife);
+				ctx.save();
+				ctx.globalAlpha = alpha;
+				drawLightningBolt(sb.x1, sb.y1, sb.x2, sb.y2, 24, 10, sb.width, sb.color, sb.glow);
+				ctx.restore();
+			});
+
+			// 4. Vẽ chữ điểm combo bay (Combo Floaters)
+			comboFloaters.forEach(function (cf) {
+				ctx.save();
+				ctx.font = "bold 13px Inter, sans-serif";
+				ctx.fillStyle = cf.color;
+				ctx.shadowColor = cf.color;
+				ctx.shadowBlur = 8;
+				ctx.globalAlpha = Math.max(0, cf.alpha);
+				ctx.textAlign = "center";
+				ctx.fillText(cf.text, cf.x, cf.y);
+				ctx.restore();
+			});
 		}
 
 		function draw(now) {
 			ctx.save();
 			if (shake > 0) {
 				shake = Math.max(0, shake - 1 / 60);
-				ctx.translate((Math.random() - 0.5) * 14 * shake / 0.32, (Math.random() - 0.5) * 10 * shake / 0.32);
+				ctx.translate((Math.random() - 0.5) * 16 * (shake / 0.48), (Math.random() - 0.5) * 12 * (shake / 0.48));
 			}
 			background(now);
-			balls.forEach(drawBall);
+			balls.forEach(function (ball) { drawBall(ball, now); });
 			drawPlayer(now);
+			drawEffects(now);
 			ctx.restore();
 		}
 
@@ -353,7 +1129,8 @@
 		}
 
 		function keyDown(event) {
-			if (!root.contains(document.activeElement)) return;
+			Sound.init();
+			if (!root.contains(document.activeElement) && document.activeElement !== document.body) return;
 			var key = event.key.toLowerCase();
 			if (key === "a" || key === "arrowleft") {
 				keys.left = true;
@@ -373,9 +1150,18 @@
 			if (key === "d" || key === "arrowright") keys.right = false;
 		}
 
-		start.addEventListener("click", beginGame);
-		restart.addEventListener("click", function () { beginGame(true); });
-		pause.addEventListener("click", togglePause);
+		start.addEventListener("click", function () {
+			Sound.init();
+			beginGame();
+		});
+		restart.addEventListener("click", function () {
+			Sound.init();
+			beginGame(true);
+		});
+		pause.addEventListener("click", function () {
+			Sound.init();
+			togglePause();
+		});
 		window.addEventListener("keydown", keyDown);
 		window.addEventListener("keyup", keyUp);
 		window.addEventListener("blur", function () {
@@ -383,9 +1169,11 @@
 			keys.right = false;
 			if (state === "playing") togglePause();
 		});
+
 		root.querySelectorAll("[data-move]").forEach(function (button) {
 			var direction = button.getAttribute("data-move");
 			button.addEventListener("pointerdown", function (event) {
+				Sound.init();
 				event.preventDefault();
 				button.setPointerCapture(event.pointerId);
 				keys[direction] = true;
@@ -394,7 +1182,11 @@
 				button.addEventListener(type, function () { keys[direction] = false; });
 			});
 		});
-		canvas.addEventListener("pointerdown", function () { canvas.focus({ preventScroll: true }); });
+
+		canvas.addEventListener("pointerdown", function () {
+			Sound.init();
+			canvas.focus({ preventScroll: true });
+		});
 
 		resize();
 		setState("ready");
