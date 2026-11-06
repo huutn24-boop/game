@@ -1,0 +1,279 @@
+.ts-game {
+	--cyan: #5ce9ff;
+	box-sizing: border-box;
+	width: min(100%, 1180px);
+	margin: 28px auto;
+	padding: clamp(12px, 2.2vw, 28px);
+	color: #eff7ff;
+	font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: radial-gradient(ellipse at 50% 42%, rgba(15, 67, 145, .24), transparent 64%), linear-gradient(145deg, #08152e, #030817 72%);
+	border: 1px solid rgba(97, 169, 255, .28);
+	border-radius: 28px;
+	box-shadow: 0 24px 90px rgba(0, 7, 28, .42), inset 0 0 36px rgba(42, 122, 255, .08);
+	overflow: hidden;
+}
+.ts-game *, .ts-game *::before, .ts-game *::after { box-sizing: border-box; }
+.ts-game__header {
+	display: grid;
+	grid-template-columns: minmax(210px, 1fr) auto;
+	align-items: end;
+	gap: 22px;
+	margin-bottom: 18px;
+}
+.ts-game__brand { padding: 4px 2px; }
+.ts-game__eyebrow {
+	margin: 0 0 7px;
+	color: #9eb5df;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: .27em;
+}
+.ts-game__eyebrow span { color: var(--cyan); }
+.ts-game__brand h2 {
+	margin: 0;
+	color: #eef8ff;
+	font-size: clamp(22px, 3.3vw, 38px);
+	font-weight: 800;
+	line-height: .98;
+	letter-spacing: .08em;
+	text-shadow: 0 0 22px rgba(77, 174, 255, .48);
+}
+.ts-game__brand h2 strong { color: var(--cyan); }
+.ts-game__hud {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(75px, 1fr));
+	min-width: min(590px, 57vw);
+	padding: 12px 8px;
+	background: rgba(3, 13, 33, .78);
+	border: 1px solid rgba(90, 164, 255, .34);
+	border-radius: 18px;
+	box-shadow: inset 0 0 22px rgba(47, 126, 255, .1), 0 0 25px rgba(30, 105, 220, .12);
+}
+.ts-game__stat {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	padding: 2px 7px;
+	border-right: 1px solid rgba(104, 150, 209, .18);
+}
+.ts-game__stat:last-child { border: 0; }
+.ts-game__stat span {
+	color: #8299c4;
+	font-size: 9px;
+	font-weight: 800;
+	letter-spacing: .17em;
+}
+.ts-game__stat strong {
+	color: #eef8ff;
+	font-size: clamp(16px, 2vw, 24px);
+	font-weight: 800;
+	font-variant-numeric: tabular-nums;
+	text-shadow: 0 0 13px rgba(105, 206, 255, .48);
+}
+.ts-game__stat--combo strong { color: #ffd58a; text-shadow: 0 0 14px rgba(255, 183, 83, .58); }
+.ts-game__frame {
+	padding: 10px;
+	background: linear-gradient(145deg, rgba(21, 46, 83, .76), rgba(3, 10, 26, .9));
+	border: 1px solid rgba(67, 119, 191, .48);
+	border-radius: 24px;
+	box-shadow: inset 0 0 0 4px rgba(2, 8, 23, .72), 0 0 32px rgba(40, 132, 255, .12);
+}
+.ts-game__stage {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid rgba(75, 144, 229, .34);
+	border-radius: 17px;
+	background: #050c20;
+	isolation: isolate;
+}
+.ts-game__canvas {
+	display: block;
+	width: 100%;
+	height: clamp(410px, 67vh, 720px);
+	min-height: 410px;
+	outline: none;
+	touch-action: pan-y;
+}
+.ts-game__canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--cyan); }
+.ts-game__status, .ts-game__key-hint {
+	position: absolute;
+	z-index: 2;
+	top: 15px;
+	display: flex;
+	align-items: center;
+	min-height: 34px;
+	padding: 0 13px;
+	color: #b7cae9;
+	background: rgba(5, 15, 36, .68);
+	border: 1px solid rgba(107, 160, 219, .2);
+	border-radius: 999px;
+	font-size: 9px;
+	font-weight: 800;
+	letter-spacing: .13em;
+	backdrop-filter: blur(8px);
+}
+.ts-game__status { left: 15px; gap: 8px; }
+.ts-game__status i {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--cyan);
+	box-shadow: 0 0 12px var(--cyan);
+}
+.ts-game[data-state="playing"] .ts-game__status i { animation: ts-pulse 1s ease-in-out infinite; }
+.ts-game__key-hint { right: 15px; gap: 13px; }
+.ts-game__key-hint span { color: var(--cyan); }
+.ts-game__overlay {
+	position: absolute;
+	z-index: 3;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 70px 18px 25px;
+	background: linear-gradient(180deg, rgba(4, 11, 29, .48), rgba(4, 12, 31, .82));
+	backdrop-filter: blur(3px);
+}
+.ts-game__overlay[hidden] { display: none; }
+.ts-game__card {
+	width: min(100%, 430px);
+	padding: clamp(22px, 4vw, 38px);
+	text-align: center;
+	background: rgba(5, 15, 38, .82);
+	border: 1px solid rgba(89, 174, 255, .36);
+	border-radius: 22px;
+	box-shadow: 0 0 45px rgba(28, 122, 255, .2), inset 0 0 25px rgba(43, 131, 255, .08);
+}
+.ts-game__kicker {
+	margin: 0 0 10px;
+	color: var(--cyan);
+	font-size: 9px;
+	font-weight: 900;
+	letter-spacing: .25em;
+}
+.ts-game__card h3 {
+	margin: 0;
+	color: #f4f9ff;
+	font-size: clamp(24px, 4.3vw, 38px);
+	line-height: 1.05;
+	text-shadow: 0 0 19px rgba(94, 184, 255, .42);
+}
+.ts-game__card > p:not(.ts-game__kicker):not(.ts-game__result) {
+	margin: 12px auto 21px;
+	max-width: 320px;
+	color: #b4c5e4;
+	font-size: 14px;
+	line-height: 1.6;
+}
+.ts-game__result {
+	margin: 12px 0 20px;
+	color: #d7e9ff;
+	font-size: 14px;
+	line-height: 1.7;
+}
+.ts-game__result[hidden] { display: none; }
+.ts-game__result strong { color: var(--cyan); }
+.ts-game__start, .ts-game__actions button, .ts-game__touch button {
+	appearance: none;
+	color: #effaff;
+	font: inherit;
+	font-weight: 900;
+	cursor: pointer;
+}
+.ts-game__start {
+	min-height: 48px;
+	padding: 0 27px;
+	color: #031025;
+	background: linear-gradient(105deg, #65f1ff, #54a9ff);
+	border: 0;
+	border-radius: 12px;
+	box-shadow: 0 0 24px rgba(67, 194, 255, .32);
+	letter-spacing: .12em;
+	transition: transform .16s ease, filter .16s ease;
+}
+.ts-game__start:hover { filter: brightness(1.12); transform: translateY(-2px); }
+.ts-game__start:focus-visible, .ts-game__actions button:focus-visible, .ts-game__touch button:focus-visible {
+	outline: 2px solid white;
+	outline-offset: 3px;
+}
+.ts-game__card small {
+	display: block;
+	margin-top: 14px;
+	color: #8197be;
+	font-size: 11px;
+}
+.ts-game__controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding: 12px 5px 2px;
+}
+.ts-game__record {
+	margin: 0;
+	color: #8299c4;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: .16em;
+}
+.ts-game__record strong {
+	margin-left: 7px;
+	color: #dceaff;
+	font-size: 14px;
+	font-variant-numeric: tabular-nums;
+}
+.ts-game__actions, .ts-game__touch { display: flex; align-items: center; gap: 8px; }
+.ts-game__actions button {
+	min-height: 36px;
+	padding: 0 13px;
+	color: #bdcdea;
+	background: rgba(14, 33, 66, .86);
+	border: 1px solid rgba(100, 155, 226, .3);
+	border-radius: 9px;
+	font-size: 9px;
+	letter-spacing: .12em;
+	transition: border-color .16s ease, color .16s ease;
+}
+.ts-game__actions button:hover { color: white; border-color: var(--cyan); }
+.ts-game__touch { display: none; }
+.ts-game__footnote { margin: 12px 3px 0; color: #8399bf; font-size: 11px; }
+@keyframes ts-pulse { 50% { opacity: .42; transform: scale(.72); } }
+@media (max-width: 760px) {
+	.ts-game { padding: 14px; border-radius: 21px; }
+	.ts-game__header { grid-template-columns: 1fr; gap: 13px; }
+	.ts-game__hud { width: 100%; min-width: 0; }
+	.ts-game__frame { padding: 7px; border-radius: 18px; }
+	.ts-game__canvas { height: min(68vh, 620px); min-height: 390px; }
+	.ts-game__key-hint { display: none; }
+	.ts-game__controls { display: grid; grid-template-columns: 1fr auto; }
+	.ts-game__record { grid-column: 1 / -1; grid-row: 1; }
+	.ts-game__touch { display: flex; grid-column: 1; grid-row: 2; }
+	.ts-game__touch button {
+		width: 46px;
+		height: 40px;
+		color: var(--cyan);
+		background: rgba(14, 33, 66, .92);
+		border: 1px solid rgba(100, 178, 255, .36);
+		border-radius: 11px;
+		font-size: 21px;
+		touch-action: none;
+		user-select: none;
+	}
+	.ts-game__actions { grid-column: 2; grid-row: 2; }
+	.ts-game__actions button { padding: 0 9px; font-size: 8px; }
+}
+@media (max-width: 390px) {
+	.ts-game__stat { padding: 2px 3px; }
+	.ts-game__stat span { font-size: 8px; letter-spacing: .1em; }
+	.ts-game__stat strong { font-size: 16px; }
+	.ts-game__canvas { min-height: 360px; }
+	.ts-game__controls { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.ts-game *, .ts-game *::before, .ts-game *::after {
+		animation-duration: .01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: .01ms !important;
+	}
+}
