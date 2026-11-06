@@ -1,19 +1,45 @@
 # Thunderstorm
 
-Game né những quả cầu sét rơi liên tục, theo phong cách neon của ảnh tham khảo.
+Game né những quả cầu sét rơi liên tục trong khung cảnh neon.
 
-## Chạy game trên máy
+**Chơi ngay:** [https://huutn24-boop.github.io/game/](https://huutn24-boop.github.io/game/)
 
-Mở Terminal tại thư mục này, chạy:
+## Cách chơi
+
+- Bấm **BẮT ĐẦU** để vào game.
+- Di chuyển bằng **A / D** hoặc **← / →**.
+- Trên điện thoại, giữ các nút mũi tên ở cạnh dưới.
+- Né bóng càng lâu càng tốt. Bóng rơi nhanh và dày hơn theo thời gian.
+- Né sát bóng để tăng combo. Kỷ lục được lưu trong trình duyệt.
+- Dùng **TẠM DỪNG** hoặc phím **P / Esc** để tạm dừng; bấm **CHƠI LẠI** để bắt đầu lượt mới.
+
+## Chạy trên máy tính
+
+Mở Terminal trong thư mục dự án, rồi chạy:
 
     python -m http.server 8000
 
-Sau đó mở http://localhost:8000. Không cần Docker để chơi bản web độc lập.
+Mở [http://localhost:8000](http://localhost:8000) trong trình duyệt. Bản web độc lập không cần Docker hay cài thư viện.
 
-Điều khiển bằng A / D hoặc phím mũi tên. Trên điện thoại, chạm hai nút mũi tên. Bóng rơi nhanh hơn theo thời gian; né sát bóng để tăng combo. Kỷ lục được lưu trong trình duyệt.
+## Cập nhật bản web công khai
+
+GitHub Pages lấy nội dung từ nhánh main, thư mục gốc. Sau khi sửa game hoặc README, đẩy thay đổi lên GitHub:
+
+    git add .
+    git commit -m "Mô tả thay đổi"
+    git push
+
+GitHub Pages sẽ tự triển khai lại sau khi nhận commit.
 
 ## Dùng trong WordPress
 
-Plugin Thunderstorm nằm ở thunderstorm-survival.php. Chép cả thư mục game (gồm thư mục assets) vào wp-content/plugins, kích hoạt plugin trong trang quản trị, rồi thêm shortcode sau vào trang:
+Chép thư mục dự án (gồm thunderstorm-survival.php và thư mục assets) vào wp-content/plugins, kích hoạt plugin **Thunderstorm**, rồi thêm shortcode này vào trang:
 
     [thunderstorm_survival]
+
+## Cấu trúc chính
+
+- index.html — trang game độc lập, dùng cho GitHub Pages.
+- assets/game.css — giao diện responsive.
+- assets/game.js — điều khiển, bóng rơi, điểm và combo.
+- thunderstorm-survival.php — plugin WordPress.
