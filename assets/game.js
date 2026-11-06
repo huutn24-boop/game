@@ -371,6 +371,7 @@
 		var touchActive = false;
 		var touchTargetX = null;
 		var touchPointerId = null;
+		var endOverlayTimer = null;
 
 		try { highScore = Number(localStorage.getItem(storageKey)) || 0; } catch (error) {}
 		bestText.textContent = String(highScore);
@@ -424,6 +425,7 @@
 
 		function showOverlay(kind) {
 			overlay.hidden = false;
+			overlay.classList.remove("is-ending", "is-visible");
 			result.hidden = true;
 			if (kind === "ready") {
 				kicker.textContent = "THỬ THÁCH SINH TỒN";
@@ -451,6 +453,11 @@
 
 		function beginGame(forceRestart) {
 			Sound.init();
+			if (endOverlayTimer !== null) {
+				window.clearTimeout(endOverlayTimer);
+				endOverlayTimer = null;
+			}
+			overlay.classList.remove("is-ending", "is-visible");
 			if (state === "paused" && !forceRestart) {
 				setState("playing");
 				overlay.hidden = true;
@@ -525,6 +532,8 @@
 			touchPointerId = null;
 			shake = 0.48;
 			skyFlash = 0.95;
+			overlay.hidden = true;
+			overlay.classList.remove("is-ending", "is-visible");
 
 			var playerY = height - 47;
 			// Tạo tia sét khổng lồ giáng thẳng từ trời xuống người chơi
@@ -559,7 +568,16 @@
 				bestText.textContent = String(highScore);
 				try { localStorage.setItem(storageKey, String(highScore)); } catch (error) {}
 			}
-			showOverlay("over");
+			endOverlayTimer = window.setTimeout(function () {
+				endOverlayTimer = null;
+				showOverlay("over");
+				overlay.classList.add("is-ending");
+				requestAnimationFrame(function () {
+					requestAnimationFrame(function () {
+						overlay.classList.add("is-visible");
+					});
+				});
+			}, 900);
 		}
 
 		function resize() {

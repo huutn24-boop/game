@@ -137,6 +137,33 @@
 	background: linear-gradient(180deg, rgba(4, 11, 29, .48), rgba(4, 12, 31, .82));
 	backdrop-filter: blur(3px);
 }
+.ts-game__overlay.is-ending {
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity .85s ease, visibility 0s linear .85s;
+}
+.ts-game__overlay.is-ending.is-visible {
+	opacity: 1;
+	visibility: visible;
+	transition: opacity .85s ease, visibility 0s;
+}
+.ts-game__overlay.is-ending .ts-game__card {
+	opacity: 0;
+	transform: translateY(18px) scale(.96);
+	filter: blur(7px);
+}
+.ts-game__overlay.is-ending.is-visible .ts-game__card {
+	animation: ts-ending-card .95s cubic-bezier(.16, 1, .3, 1) .16s both;
+}
+.ts-game__overlay.is-ending.is-visible .ts-game__card > * {
+	animation: ts-ending-item .55s cubic-bezier(.16, 1, .3, 1) both;
+}
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(1) { animation-delay: .32s; }
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(2) { animation-delay: .42s; }
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(3) { animation-delay: .52s; }
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(4) { animation-delay: .62s; }
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(5) { animation-delay: .72s; }
+.ts-game__overlay.is-ending.is-visible .ts-game__card > :nth-child(6) { animation-delay: .82s; }
 .ts-game__overlay[hidden] { display: none; }
 .ts-game__card {
 	width: min(100%, 430px);
@@ -247,6 +274,14 @@
 .ts-game__touch { display: none; }
 .ts-game__footnote { margin: 12px 3px 0; color: #8399bf; font-size: 11px; }
 @keyframes ts-pulse { 50% { opacity: .42; transform: scale(.72); } }
+@keyframes ts-ending-card {
+	from { opacity: 0; transform: translateY(18px) scale(.96); filter: blur(7px); }
+	to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes ts-ending-item {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: translateY(0); }
+}
 @media (max-width: 760px) {
 	.ts-game { padding: 14px; border-radius: 21px; }
 	.ts-game__header { grid-template-columns: 1fr; gap: 13px; }
