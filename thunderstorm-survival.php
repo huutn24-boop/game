@@ -144,8 +144,8 @@ function thunderstorm_survival_shortcode() {
 				<div class="ts-store__market">
 					<nav class="ts-store__tabs" aria-label="Danh mục cửa hàng">
 						<button type="button" data-store-tab="item" class="is-active">VẬT PHẨM <span>02</span></button>
-						<button type="button" data-store-tab="character">NHÂN VẬT <span>04</span></button>
-						<button type="button" data-store-tab="effect">HIỆU ỨNG <span>04</span></button>
+						<button type="button" data-store-tab="character">NHÂN VẬT <span>09</span></button>
+						<button type="button" data-store-tab="effect">HIỆU ỨNG <span>09</span></button>
 					</nav>
 					<div class="ts-store__products" data-store-products></div>
 				</div>

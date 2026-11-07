@@ -372,8 +372,10 @@
 		var touchTargetX = null;
 		var touchPointerId = null;
 		var endOverlayTimer = null;
-		var playerColor = "#bdf7ff";
-		var effectColor = "#54cfff";
+		var playerColor = "#83f5ff";
+		var playerGlowColor = "#53dfff";
+		var effectColor = "#5ce9ff";
+		var equippedEffectId = "ice";
 
 		try { highScore = Number(localStorage.getItem(storageKey)) || 0; } catch (error) {}
 		bestText.textContent = String(highScore);
@@ -670,10 +672,10 @@
 							y: height - 23,
 							vx: -tDir * (Math.random() * 60 + 20),
 							vy: -Math.random() * 25,
-							life: 0.22,
-							maxLife: 0.22,
-							size: Math.random() * 2 + 1,
-							color: "rgba(100, 220, 255, 0.7)"
+							life: 0.24,
+							maxLife: 0.24,
+							size: Math.random() * 2.2 + 1,
+							color: effectColor
 						});
 					}
 				}
@@ -688,10 +690,10 @@
 						y: height - 23,
 						vx: -moveDir * (Math.random() * 60 + 20),
 						vy: -Math.random() * 25,
-						life: 0.22,
-						maxLife: 0.22,
-						size: Math.random() * 2 + 1,
-						color: "rgba(100, 220, 255, 0.7)"
+						life: 0.24,
+						maxLife: 0.24,
+						size: Math.random() * 2.2 + 1,
+						color: effectColor
 					});
 				}
 			}
@@ -1090,22 +1092,107 @@
 			ctx.lineTo(playerX + 10 - step, ground);
 			ctx.stroke();
 
-			// Khiên từ trường bảo vệ dưới chân
-			ctx.shadowBlur = 8;
-			ctx.strokeStyle = effectColor;
-			ctx.lineWidth = 2;
+			// Lõi ngực năng lượng phát sáng theo hiệu ứng
+			ctx.fillStyle = effectColor;
+			ctx.shadowBlur = 12;
 			ctx.beginPath();
-			ctx.ellipse(playerX, ground + 3, 20, 5, 0, 0, Math.PI * 2);
+			ctx.arc(playerX, head + 15, 2.5, 0, Math.PI * 2);
+			ctx.fill();
+
+			// Khiên từ trường bảo vệ dưới chân
+			ctx.shadowBlur = 10;
+			ctx.strokeStyle = effectColor;
+			ctx.lineWidth = 2.2;
+			ctx.beginPath();
+			ctx.ellipse(playerX, ground + 3, 21, 5.5, 0, 0, Math.PI * 2);
 			ctx.stroke();
 
-			// Hào quang bảo vệ nhẹ nhấp nháy
+			// Hào quang bảo vệ nhấp nháy đa sắc quanh nhân vật
 			if (state === "playing") {
-				var auraPulse = Math.sin(now * 0.008) * 2;
-				ctx.strokeStyle = "rgba(120, 230, 255, 0.24)";
-				ctx.lineWidth = 1.2;
+				var auraPulse = Math.sin(now * 0.008) * 2.5;
+				var baseR = 24 + auraPulse;
+				ctx.save();
+				ctx.strokeStyle = effectColor;
+				ctx.shadowColor = effectColor;
+				ctx.shadowBlur = 14;
+				ctx.lineWidth = 1.6;
+				ctx.globalAlpha = 0.38 + Math.sin(now * 0.006) * 0.12;
+
 				ctx.beginPath();
-				ctx.arc(playerX, ground - 22, 24 + auraPulse, 0, Math.PI * 2);
+				ctx.arc(playerX, ground - 22, baseR, 0, Math.PI * 2);
 				ctx.stroke();
+
+				// Các chi tiết hiệu ứng đặc trưng theo từng loại effect
+				if (equippedEffectId === "crimson_fire") {
+					// Lửa đỏ ma quái: vệt lửa bập bùng
+					var f1 = Math.sin(now * 0.02) * 5;
+					var f2 = Math.cos(now * 0.025) * 5;
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					ctx.moveTo(playerX - 14, ground);
+					ctx.quadraticCurveTo(playerX - 10, ground - 26 + f1, playerX - 6, ground - 34 + f1);
+					ctx.moveTo(playerX + 14, ground);
+					ctx.quadraticCurveTo(playerX + 10, ground - 26 + f2, playerX + 6, ground - 34 + f2);
+					ctx.stroke();
+				} else if (equippedEffectId === "violet") {
+					// Tia hồ quang: phóng điện mini
+					var a1 = now * 0.006;
+					ctx.lineWidth = 1.5;
+					ctx.beginPath();
+					ctx.arc(playerX, ground - 22, baseR + 5, a1, a1 + 1.2);
+					ctx.moveTo(playerX + Math.cos(a1 + 3.14) * (baseR + 5), ground - 22 + Math.sin(a1 + 3.14) * (baseR + 5));
+					ctx.arc(playerX, ground - 22, baseR + 5, a1 + 3.14, a1 + 4.3);
+					ctx.stroke();
+				} else if (equippedEffectId === "emerald_pulse") {
+					// Ma trận lục bảo: vòng xung nhịp điện tử
+					ctx.lineWidth = 1.2;
+					ctx.strokeRect(playerX - 16, ground - 38, 32, 32);
+				} else if (equippedEffectId === "gold") {
+					// Lửa hoàng kim: vòng hào quang vương giả phát quang
+					ctx.lineWidth = 1.2;
+					ctx.beginPath();
+					ctx.arc(playerX, ground - 22, baseR + 7, 0, Math.PI * 2);
+					ctx.stroke();
+				} else if (equippedEffectId === "plasma") {
+					// Plasma xanh ngọc: 2 hạt plasma quay quanh
+					var pRot = now * 0.005;
+					var px1 = playerX + Math.cos(pRot) * (baseR + 4);
+					var py1 = ground - 22 + Math.sin(pRot) * (baseR * 0.6);
+					var px2 = playerX - Math.cos(pRot) * (baseR + 4);
+					var py2 = ground - 22 - Math.sin(pRot) * (baseR * 0.6);
+					ctx.fillStyle = effectColor;
+					ctx.beginPath();
+					ctx.arc(px1, py1, 3, 0, Math.PI * 2);
+					ctx.arc(px2, py2, 3, 0, Math.PI * 2);
+					ctx.fill();
+				} else if (equippedEffectId === "sakura") {
+					// Bão hồng neon: cánh hoa hồng bay nhẹ
+					var sRot = now * 0.003;
+					ctx.fillStyle = effectColor;
+					ctx.beginPath();
+					ctx.arc(playerX + Math.cos(sRot) * 18, ground - 30 + Math.sin(sRot * 1.5) * 8, 2.5, 0, Math.PI * 2);
+					ctx.arc(playerX - Math.cos(sRot * 0.8) * 16, ground - 18 + Math.sin(sRot * 1.2) * 8, 2.2, 0, Math.PI * 2);
+					ctx.fill();
+				} else if (equippedEffectId === "prism") {
+					// Sao băng cầu vồng: vòng xoay hào quang đa sắc
+					var hue = Math.floor((now * 0.08) % 360);
+					ctx.strokeStyle = "hsl(" + hue + ", 100%, 70%)";
+					ctx.shadowColor = "hsl(" + hue + ", 100%, 70%)";
+					ctx.lineWidth = 2;
+					ctx.beginPath();
+					ctx.arc(playerX, ground - 22, baseR + 4, 0, Math.PI * 2);
+					ctx.stroke();
+				} else if (equippedEffectId === "divine") {
+					// Hào quang bạch ngọc: vòng thánh quang kép
+					ctx.lineWidth = 1.2;
+					ctx.strokeStyle = "#ffffff";
+					ctx.shadowColor = "#ffffff";
+					ctx.beginPath();
+					ctx.arc(playerX, ground - 22, baseR + 6, 0, Math.PI * 2);
+					ctx.arc(playerX, ground - 22, baseR - 6, 0, Math.PI * 2);
+					ctx.stroke();
+				}
+				ctx.restore();
 			}
 
 			ctx.restore();
@@ -1339,8 +1426,10 @@
 		function updateEquippedLook() {
 			if (root.__tsProfile) {
 				var look = root.__tsProfile.getLook();
-				playerColor = look.character && look.character.color ? look.character.color : "#bdf7ff";
-				effectColor = look.effect && look.effect.color ? look.effect.color : "#54cfff";
+				playerColor = look.character && look.character.color ? look.character.color : "#83f5ff";
+				playerGlowColor = look.character && look.character.glow ? look.character.glow : playerColor;
+				effectColor = look.effect && look.effect.color ? look.effect.color : "#5ce9ff";
+				equippedEffectId = look.effect && look.effect.id ? look.effect.id : "ice";
 			}
 			requestAnimationFrame(function () {
 				resize();

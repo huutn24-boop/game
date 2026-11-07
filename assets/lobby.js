@@ -2,16 +2,31 @@
 	"use strict";
 
 	var products = [
+		// --- VẬT PHẨM HỖ TRỢ ---
 		{ id: "shield", category: "item", name: "KHIÊN NĂNG LƯỢNG", desc: "Chặn một lần va chạm trong lượt chơi tiếp theo.", price: 180, icon: "⬡", tag: "DÙNG 1 LẦN" },
 		{ id: "score_core", category: "item", name: "LÕI NHÂN ĐIỂM", desc: "Nhân đôi điểm trong một lượt chơi.", price: 260, icon: "✦", tag: "DÙNG 1 LẦN" },
-		{ id: "scout", category: "character", name: "NEON SCOUT", desc: "Phi công cơ bản, nhanh nhẹn và sẵn sàng ra trận.", price: 0, icon: "◉", color: "#83f5ff", glow: "#53dfff", tag: "MẶC ĐỊNH" },
-		{ id: "volt", category: "character", name: "VOLT RUNNER", desc: "Bộ giáp hồ quang với ánh xanh điện.", price: 420, icon: "ϟ", color: "#72d4ff", glow: "#39aaff", tag: "HIẾM" },
-		{ id: "nova", category: "character", name: "NOVA PILOT", desc: "Phi công tinh nhuệ với lõi năng lượng tím.", price: 620, icon: "✧", color: "#e7c0ff", glow: "#bd6cff", tag: "SIÊU HIẾM" },
-		{ id: "titan", category: "character", name: "TEMPEST TITAN", desc: "Chiến binh bão tố với ánh vàng mạnh mẽ.", price: 850, icon: "♜", color: "#ffe1a1", glow: "#ffb743", tag: "HỮU HẠN" },
-		{ id: "ice", category: "effect", name: "HÀO QUANG BĂNG", desc: "Vòng sáng xanh mát bao quanh nhân vật.", price: 0, icon: "❋", color: "#5ce9ff", tag: "MẶC ĐỊNH" },
-		{ id: "violet", category: "effect", name: "TIA HỒ QUANG", desc: "Đuôi điện tím nổi bật khi di chuyển.", price: 260, icon: "⌁", color: "#d277ff", tag: "HIẾM" },
-		{ id: "gold", category: "effect", name: "LỬA VÀNG", desc: "Hào quang vàng rực và tia lửa vàng.", price: 380, icon: "✦", color: "#ffca62", tag: "SIÊU HIẾM" },
-		{ id: "plasma", category: "effect", name: "PLASMA XANH", desc: "Hiệu ứng plasma xanh ngọc quanh người chơi.", price: 520, icon: "◎", color: "#65ffce", tag: "HỮU HẠN" }
+
+		// --- BỘ NHÂN VẬT (ĐA DẠNG SẮC MÀU: XANH, ĐỎ, TÍM, VÀNG, LỤC, HỒNG, BẠCH KIM, CAM) ---
+		{ id: "scout", category: "character", name: "NEON SCOUT", desc: "Phi công cơ bản với giáp neon xanh lam, nhanh nhẹn và dẻo dai.", price: 0, icon: "◉", color: "#83f5ff", glow: "#53dfff", tag: "MẶC ĐỊNH" },
+		{ id: "blaze", category: "character", name: "CRIMSON BLAZE", desc: "Chiến giáp đỏ rực nhiệt năng, áp chế mọi đợt bão sét.", price: 320, icon: "▲", color: "#ff3355", glow: "#ff5577", tag: "HỎA BÃO" },
+		{ id: "volt", category: "character", name: "VOLT RUNNER", desc: "Bộ giáp hồ quang với ánh xanh điện từ cực nhanh.", price: 420, icon: "ϟ", color: "#38bdf8", glow: "#0ea5e9", tag: "LÔI ĐIỆN" },
+		{ id: "phantom", category: "character", name: "CYBER PHANTOM", desc: "Bóng ma xanh lục bảo di chuyển chớp nhoáng như sóng sinh học.", price: 490, icon: "◈", color: "#00f59b", glow: "#10b981", tag: "LỤC BẢO" },
+		{ id: "nova", category: "character", name: "NOVA PILOT", desc: "Phi công tinh nhuệ sở hữu lõi năng lượng tím vũ trụ vô cực.", price: 580, icon: "✧", color: "#d946ef", glow: "#a855f7", tag: "HUYỀN BÍ" },
+		{ id: "titan", category: "character", name: "TEMPEST TITAN", desc: "Chiến binh bão tố khổng lồ phủ lớp giáp vàng rực kiên cố.", price: 680, icon: "♜", color: "#fbbf24", glow: "#f59e0b", tag: "HOÀNG KIM" },
+		{ id: "lotus", category: "character", name: "CYBER LOTUS", desc: "Ánh hồng neon tương lai tỏa sáng rực rỡ giữa tâm bão điện tử.", price: 760, icon: "✿", color: "#ff3b94", glow: "#f43f5e", tag: "HỒNG NEON" },
+		{ id: "chrono", category: "character", name: "CHRONO GHOST", desc: "Bộ giáp bạch kim nguyên tử phản chiếu mọi tia sét cực độ.", price: 850, icon: "✦", color: "#f8fafc", glow: "#cbd5e1", tag: "BẠCH KIM" },
+		{ id: "valkyrie", category: "character", name: "SOLAR VALKYRIE", desc: "Nữ chiến binh mặt trời mang nguồn năng lượng plasma bùng nổ.", price: 950, icon: "★", color: "#ff7828", glow: "#ea580c", tag: "THẦN THOẠI" },
+
+		// --- BỘ HIỆU ỨNG NHÂN VẬT (HÀO QUANG & TÀN LỬA ĐA SẮC) ---
+		{ id: "ice", category: "effect", name: "HÀO QUANG BĂNG", desc: "Vòng sáng pha lê băng giá lạnh buốt bao quanh nhân vật.", price: 0, icon: "❋", color: "#5ce9ff", glow: "#06b6d4", tag: "MẶC ĐỊNH" },
+		{ id: "crimson_fire", category: "effect", name: "LỬA HUYẾT THIÊN", desc: "Ngọn lửa đỏ máu cuộn trào tàn lửa ma quái mỗi bước chân.", price: 290, icon: "♨", color: "#ff3355", glow: "#ef4444", tag: "HỎA DIỆM" },
+		{ id: "violet", category: "effect", name: "TIA HỒ QUANG", desc: "Đuôi điện tím hồ quang phóng điện liên tục xung quanh.", price: 360, icon: "⌁", color: "#c084fc", glow: "#9333ea", tag: "LÔI TÍM" },
+		{ id: "emerald_pulse", category: "effect", name: "MA TRẬN LỤC BẢO", desc: "Luồng xung động ma trận xanh lá kỹ thuật số xoay vần.", price: 440, icon: "❖", color: "#22c55e", glow: "#16a34a", tag: "MA TRẬN" },
+		{ id: "gold", category: "effect", name: "LỬA HOÀNG KIM", desc: "Hào quang vàng kim chói lọi và tia lửa vàng hoàng gia.", price: 520, icon: "✦", color: "#facc15", glow: "#eab308", tag: "HOÀNG GIA" },
+		{ id: "plasma", category: "effect", name: "PLASMA XANH NGỌC", desc: "Hiệu ứng plasma xanh ngọc đa tầng tỏa sáng quanh phi công.", price: 590, icon: "◎", color: "#2dd4bf", glow: "#14b8a6", tag: "PLASMA" },
+		{ id: "sakura", category: "effect", name: "BÃO HỒNG NEON", desc: "Bão cánh hoa ánh sáng hồng phấn bay lượn huyền ảo.", price: 680, icon: "❀", color: "#f472b6", glow: "#ec4899", tag: "ANH ĐÀO" },
+		{ id: "prism", category: "effect", name: "SAO BĂNG CẦU VỒNG", desc: "Hào quang lăng kính tán sắc cầu vồng rực rỡ lấp lánh.", price: 780, icon: "✺", color: "#a78bfa", glow: "#38bdf8", tag: "VÔ CỰC" },
+		{ id: "divine", category: "effect", name: "HÀO QUANG BẠCH NGỌC", desc: "Vòng thiên hà trắng bạc thuần khiết với hào quang thần thánh.", price: 890, icon: "❂", color: "#ffffff", glow: "#e2e8f0", tag: "THẦN THÁNH" }
 	];
 	var storageKey = "thunderstorm-profile-v1";
 	var bestKey = "thunderstorm-survival-best-v1";
@@ -121,7 +136,10 @@
 				avatar.style.setProperty("--avatar-color", character.color || "#83f5ff");
 				avatar.style.setProperty("--avatar-glow", effect.color || "#5ce9ff");
 				avatar.setAttribute("data-character", character.id);
+				avatar.setAttribute("data-effect", effect.id);
 			}
+			root.style.setProperty("--avatar-color", character.color || "#83f5ff");
+			root.style.setProperty("--avatar-glow", effect.color || "#5ce9ff");
 		}
 
 		function showToast(text) {
@@ -180,10 +198,20 @@
 			cartCounts.forEach(function (node) { node.textContent = String(cartQuantity()); });
 		}
 
+		function updateTabCounts() {
+			var itemCount = products.filter(function (p) { return p.category === "item"; }).length;
+			var charCount = products.filter(function (p) { return p.category === "character"; }).length;
+			var effectCount = products.filter(function (p) { return p.category === "effect"; }).length;
+			root.querySelectorAll('[data-store-tab="item"] span').forEach(function (node) { node.textContent = (itemCount < 10 ? "0" : "") + itemCount; });
+			root.querySelectorAll('[data-store-tab="character"] span').forEach(function (node) { node.textContent = (charCount < 10 ? "0" : "") + charCount; });
+			root.querySelectorAll('[data-store-tab="effect"] span').forEach(function (node) { node.textContent = (effectCount < 10 ? "0" : "") + effectCount; });
+		}
+
 		function render() {
 			renderProfile();
 			renderProducts();
 			renderCart();
+			updateTabCounts();
 		}
 
 		function addToCart(id) {
