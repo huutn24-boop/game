@@ -618,21 +618,10 @@ html, body {
 		display: none;
 	}
 	.ts-lobby__intro h1 {
-		display: block;
-		max-width: 100%;
-		margin: 0;
-		font-size: clamp(42px, 15vw, 68px);
-		line-height: .82;
-		letter-spacing: -.055em;
-		white-space: nowrap;
+		display: none;
 	}
 	.ts-lobby__description {
-		display: block;
-		max-width: 100%;
-		margin: 7px 0 0;
-		font-size: 11px;
-		line-height: 1.45;
-		overflow-wrap: anywhere;
+		display: none;
 	}
 
 	/* Records: compact horizontal strip */
