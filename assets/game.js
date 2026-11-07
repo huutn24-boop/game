@@ -350,6 +350,7 @@
 		var scoreText = root.querySelector("[data-score]");
 		var comboText = root.querySelector("[data-combo]");
 		var livesText = root.querySelector("[data-lives]");
+		var coinsText = root.querySelector("[data-coins]");
 		var bestText = root.querySelector("[data-best]");
 		var kicker = root.querySelector("[data-kicker]");
 		var title = root.querySelector("[data-title]");
@@ -359,7 +360,7 @@
 		var state = "ready";
 		var keys = { left: false, right: false };
 		var width = 1, height = 1, ratio = 1, lastFrame = 0;
-		var elapsed = 0, score = 0, combo = 0, comboTimer = 0, spawnTimer = 0.55;
+		var elapsed = 0, score = 0, combo = 0, coinsCollected = 0, comboTimer = 0, spawnTimer = 0.55;
 		var playerX = 0, shake = 0, balls = [], pickups = [], stars = [];
 		var playerMoveDir = 0, extraLives = 0, invulnerable = 0, pickupTimer = 8;
 		var highScore = 0, playerRadius = 11;
@@ -422,7 +423,8 @@
 			timeText.textContent = timeLabel(elapsed);
 			scoreText.textContent = String(score);
 			comboText.textContent = "x" + combo;
-			livesText.textContent = String(extraLives ? 2 : 1);
+			coinsText.textContent = String(coinsCollected);
+			livesText.textContent = (extraLives ? 2 : 1) + "/2";
 		}
 
 		function updatePauseLabel() {
@@ -477,6 +479,7 @@
 			elapsed = 0;
 			score = 0;
 			combo = 0;
+			coinsCollected = 0;
 			comboTimer = 0;
 			spawnTimer = 0.55;
 			shake = 0;
@@ -875,6 +878,7 @@
 					} else if (pickup.type === "coin") {
 						var coinReward = 5;
 						score += 25;
+						coinsCollected += 1;
 						if (root.__tsProfile) root.__tsProfile.addCoins(coinReward);
 						spawnSparks(pickup.x, pickup.y, 18, "#ffd55e", 150);
 						comboFloaters.push({ x: pickup.x, y: pickup.y - 12, text: "+" + coinReward + " XU", vy: -42, alpha: 1, color: "#ffd55e" });

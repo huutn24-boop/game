@@ -48,7 +48,7 @@ html, body {
 .ts-game__brand h2 strong { color: var(--cyan); }
 .ts-game__hud {
 	display: grid;
-	grid-template-columns: repeat(5, minmax(75px, 1fr));
+	grid-template-columns: repeat(6, minmax(75px, 1fr));
 	min-width: min(590px, 57vw);
 	padding: 12px 8px;
 	background: rgba(3, 13, 33, .78);
@@ -80,6 +80,7 @@ html, body {
 	text-shadow: 0 0 13px rgba(105, 206, 255, .48);
 }
 .ts-game__stat--combo strong { color: #ffd58a; text-shadow: 0 0 14px rgba(255, 183, 83, .58); }
+.ts-game__stat--coin strong { color: #ffe084; text-shadow: 0 0 14px rgba(255, 208, 92, .48); }
 .ts-game__frame {
 	padding: 10px;
 	background: linear-gradient(145deg, rgba(21, 46, 83, .76), rgba(3, 10, 26, .9));
@@ -305,7 +306,7 @@ html, body {
 	}
 	.ts-game__header { grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
 	.ts-game__brand h2 { font-size: 20px; }
-	.ts-game__hud { width: 100%; min-width: 0; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px 4px; }
+	.ts-game__hud { width: 100%; min-width: 0; grid-template-columns: repeat(6, minmax(0, 1fr)); padding: 6px 4px; }
 	.ts-game__frame { padding: 6px; border-radius: 16px; }
 	.ts-game__canvas { height: clamp(260px, 52vh, 500px); min-height: 260px; }
 	.ts-game__key-hint {
