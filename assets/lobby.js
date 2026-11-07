@@ -312,6 +312,10 @@
 				profile.runs += 1;
 				saveProfile();
 				return reward;
+			},
+			addCoins: function (amount) {
+				profile.coins += amount;
+				saveProfile();
 			}
 		};
 

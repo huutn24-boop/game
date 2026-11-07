@@ -349,6 +349,7 @@
 		var timeText = root.querySelector("[data-time]");
 		var scoreText = root.querySelector("[data-score]");
 		var comboText = root.querySelector("[data-combo]");
+		var livesText = root.querySelector("[data-lives]");
 		var bestText = root.querySelector("[data-best]");
 		var kicker = root.querySelector("[data-kicker]");
 		var title = root.querySelector("[data-title]");
@@ -359,7 +360,8 @@
 		var keys = { left: false, right: false };
 		var width = 1, height = 1, ratio = 1, lastFrame = 0;
 		var elapsed = 0, score = 0, combo = 0, comboTimer = 0, spawnTimer = 0.55;
-		var playerX = 0, shake = 0, balls = [], stars = [];
+		var playerX = 0, shake = 0, balls = [], pickups = [], stars = [];
+		var playerMoveDir = 0, extraLives = 0, invulnerable = 0, pickupTimer = 8;
 		var highScore = 0, playerRadius = 11;
 		var storageKey = "thunderstorm-survival-best-v1";
 		var lastLevel = 1;
@@ -420,6 +422,7 @@
 			timeText.textContent = timeLabel(elapsed);
 			scoreText.textContent = String(score);
 			comboText.textContent = "x" + combo;
+			livesText.textContent = String(extraLives ? 2 : 1);
 		}
 
 		function updatePauseLabel() {
@@ -480,6 +483,11 @@
 			skyFlash = 0.35;
 			lastLevel = 1;
 			balls = [];
+			pickups = [];
+			extraLives = 0;
+			invulnerable = 1;
+			pickupTimer = 7 + Math.random() * 3;
+			playerMoveDir = 0;
 			particles = [];
 			shockwaves = [];
 			comboFloaters = [];
@@ -633,6 +641,20 @@
 			});
 		}
 
+		function addPickup() {
+			var reviveAvailable = extraLives === 0 && Math.random() < 0.36;
+			var type = reviveAvailable ? "revive" : "coin";
+			pickups.push({
+				x: 32 + Math.random() * Math.max(1, width - 64),
+				y: -24,
+				r: type === "revive" ? 12 : 10,
+				vy: 105 + Math.random() * 45,
+				vx: (Math.random() - 0.5) * 20,
+				type: type,
+				phase: Math.random() * Math.PI * 2
+			});
+		}
+
 		function update(dt) {
 			if (state !== "playing") return;
 			elapsed += dt;
@@ -653,12 +675,15 @@
 
 			var fallSpeed = Math.min(780, 195 + elapsed * 2.8 + (stageLevel - 1) * 20);
 			var moveSpeed = 330 + Math.min(120, (stageLevel - 1) * 8);
+			playerMoveDir = 0;
+			if (invulnerable > 0) invulnerable -= dt;
 
 			var moveDir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
 			if (touchActive && touchTargetX !== null) {
 				var diff = touchTargetX - playerX;
 				if (Math.abs(diff) > 1.5) {
 					var tDir = diff > 0 ? 1 : -1;
+					playerMoveDir = tDir;
 					// Phản hồi điều khiển cảm ứng tay cực nhạy và mượt mà trên điện thoại
 					var touchSpeed = Math.max(moveSpeed * 1.6, Math.abs(diff) * 28);
 					var moveAmt = Math.min(Math.abs(diff), touchSpeed * dt);
@@ -680,6 +705,7 @@
 					}
 				}
 			} else if (moveDir !== 0) {
+				playerMoveDir = moveDir;
 				playerX += moveDir * moveSpeed * dt;
 				playerX = Math.max(22, Math.min(width - 22, playerX));
 				Sound.playMove();
@@ -704,13 +730,19 @@
 				addBall();
 				spawnTimer += interval;
 			}
+
+			pickupTimer -= dt;
+			if (pickupTimer <= 0) {
+				addPickup();
+				pickupTimer = Math.max(5.8, 9.5 - elapsed * 0.025) + Math.random() * 3.5;
+			}
 			if (comboTimer > 0 && (comboTimer -= dt) <= 0) combo = 0;
 
 			var playerY = height - 47;
 			for (var i = balls.length - 1; i >= 0; i--) {
 				var ball = balls[i];
 				ball.y += fallSpeed * dt;
-				ball.x += ball.vx * dt + Math.sin(elapsed * 1.8 + ball.phase) * 8 * dt;
+				ball.x += ball.vx * dt + playerMoveDir * 34 * dt + Math.sin(elapsed * 1.8 + ball.phase) * 8 * dt;
 				ball.x = Math.max(ball.r, Math.min(width - ball.r, ball.x));
 
 				// Cập nhật vết đuôi tia sét rơi
@@ -755,8 +787,18 @@
 
 				// Va chạm với người chơi: Game Over
 				if (distance < ball.r + playerRadius) {
-					endGame();
-					break;
+					if (invulnerable <= 0 && extraLives > 0) {
+						extraLives = 0;
+						invulnerable = 2;
+						balls.splice(i, 1);
+						shake = 0.35;
+						spawnSparks(playerX, playerY, 32, "#5ce9ff", 210);
+						comboFloaters.push({ x: playerX, y: playerY - 42, text: "MẠNG DỰ PHÒNG ĐÃ DÙNG", vy: -35, alpha: 1, color: "#8affc1" });
+						updateHud();
+					} else if (invulnerable <= 0) {
+						endGame();
+						break;
+					}
 				}
 
 				// Né sát quả bóng (Graze / Near Miss)
@@ -814,6 +856,35 @@
 				if (ball.y - ball.r > height + 24) {
 					balls.splice(i, 1);
 				}
+			}
+
+			for (var k = pickups.length - 1; k >= 0; k--) {
+				var pickup = pickups[k];
+				pickup.y += pickup.vy * dt;
+				pickup.x += pickup.vx * dt;
+				pickup.phase += dt * 4;
+				pickup.x = Math.max(pickup.r, Math.min(width - pickup.r, pickup.x));
+
+				var pickupDx = pickup.x - playerX;
+				var pickupDy = pickup.y - playerY;
+				if (Math.sqrt(pickupDx * pickupDx + pickupDy * pickupDy) < pickup.r + playerRadius + 3) {
+					if (pickup.type === "revive" && extraLives === 0) {
+						extraLives = 1;
+						spawnSparks(pickup.x, pickup.y, 28, "#8affc1", 180);
+						comboFloaters.push({ x: playerX, y: playerY - 42, text: "MẠNG THỨ 2", vy: -38, alpha: 1, color: "#8affc1" });
+					} else if (pickup.type === "coin") {
+						var coinReward = 5;
+						score += 25;
+						if (root.__tsProfile) root.__tsProfile.addCoins(coinReward);
+						spawnSparks(pickup.x, pickup.y, 18, "#ffd55e", 150);
+						comboFloaters.push({ x: pickup.x, y: pickup.y - 12, text: "+" + coinReward + " XU", vy: -42, alpha: 1, color: "#ffd55e" });
+					}
+					pickups.splice(k, 1);
+					updateHud();
+					continue;
+				}
+
+				if (pickup.y - pickup.r > height + 20) pickups.splice(k, 1);
 			}
 
 			// Cập nhật hạt tia lửa (particles)
@@ -951,6 +1022,50 @@
 		}
 
 		// --- VẼ QUẢ BÓNG SÉT RƠI (BALL LIGHTNING) VỚI ĐẦY ĐỦ HIỆU ỨNG TIA ĐIỆN VÀ TÀN LỬA ---
+		function drawPickup(pickup, now) {
+			var pulse = 1 + Math.sin(now * 0.006 + pickup.phase) * 0.08;
+			ctx.save();
+			ctx.translate(pickup.x, pickup.y);
+			ctx.scale(pulse, pulse);
+			if (pickup.type === "revive") {
+				ctx.shadowColor = "#7affbc";
+				ctx.shadowBlur = 18;
+				ctx.strokeStyle = "#9affd1";
+				ctx.fillStyle = "rgba(73, 230, 166, .18)";
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.arc(0, 0, pickup.r + 2, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.stroke();
+				ctx.fillStyle = "#9affd1";
+				ctx.beginPath();
+				ctx.moveTo(3, -10);
+				ctx.lineTo(-3, -1);
+				ctx.lineTo(3, 1);
+				ctx.lineTo(-2, 11);
+				ctx.lineTo(1, 3);
+				ctx.lineTo(-5, 1);
+				ctx.closePath();
+				ctx.fill();
+			} else {
+				ctx.shadowColor = "#ffd55e";
+				ctx.shadowBlur = 14;
+				ctx.strokeStyle = "#ffe99a";
+				ctx.fillStyle = "#ffc94d";
+				ctx.lineWidth = 2;
+				ctx.beginPath();
+				ctx.arc(0, 0, pickup.r, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.stroke();
+				ctx.fillStyle = "#fff2aa";
+				ctx.font = "900 11px system-ui";
+				ctx.textAlign = "center";
+				ctx.textBaseline = "middle";
+				ctx.fillText("ϟ", 0, 0);
+			}
+			ctx.restore();
+		}
+
 		function drawBall(ball, now) {
 			ctx.save();
 			var r = ball.r;
@@ -1296,6 +1411,7 @@
 			}
 			background(now);
 			balls.forEach(function (ball) { drawBall(ball, now); });
+			pickups.forEach(function (pickup) { drawPickup(pickup, now); });
 			drawTouchIndicator(now);
 			drawPlayer(now);
 			drawEffects(now);
