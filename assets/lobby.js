@@ -3,7 +3,7 @@
 
 	var products = [
 		// --- VẬT PHẨM HỖ TRỢ ---
-		{ id: "shield", category: "item", name: "KHIÊN NĂNG LƯỢNG", desc: "Chặn một lần va chạm trong lượt chơi tiếp theo.", price: 180, icon: "⬡", tag: "DÙNG 1 LẦN" },
+		{ id: "shield", category: "item", name: "KHIÊN BẢO HỘ", desc: "Chặn một lần va chạm trong lượt chơi tiếp theo.", price: 180, icon: "⬡", tag: "DÙNG 1 LẦN" },
 		{ id: "score_core", category: "item", name: "LÕI NHÂN ĐIỂM", desc: "Nhân đôi điểm trong một lượt chơi.", price: 260, icon: "✦", tag: "DÙNG 1 LẦN" },
 
 		// --- BỘ NHÂN VẬT (ĐA DẠNG SẮC MÀU: XANH, ĐỎ, TÍM, VÀNG, LỤC, HỒNG, BẠCH KIM, CAM) ---
@@ -11,11 +11,11 @@
 		{ id: "blaze", category: "character", name: "CRIMSON BLAZE", desc: "Chiến giáp đỏ rực nhiệt năng, áp chế mọi đợt bão sét.", price: 320, icon: "▲", color: "#ff3355", glow: "#ff5577", tag: "HỎA BÃO" },
 		{ id: "volt", category: "character", name: "VOLT RUNNER", desc: "Bộ giáp hồ quang với ánh xanh điện từ cực nhanh.", price: 420, icon: "ϟ", color: "#38bdf8", glow: "#0ea5e9", tag: "LÔI ĐIỆN" },
 		{ id: "phantom", category: "character", name: "CYBER PHANTOM", desc: "Bóng ma xanh lục bảo di chuyển chớp nhoáng như sóng sinh học.", price: 490, icon: "◈", color: "#00f59b", glow: "#10b981", tag: "LỤC BẢO" },
-		{ id: "nova", category: "character", name: "NOVA PILOT", desc: "Phi công tinh nhuệ sở hữu lõi năng lượng tím vũ trụ vô cực.", price: 580, icon: "✧", color: "#d946ef", glow: "#a855f7", tag: "HUYỀN BÍ" },
+		{ id: "nova", category: "character", name: "NOVA PILOT", desc: "Phi công tinh nhuệ sở hữu lõi ánh tím vũ trụ vô cực.", price: 580, icon: "✧", color: "#d946ef", glow: "#a855f7", tag: "HUYỀN BÍ" },
 		{ id: "titan", category: "character", name: "TEMPEST TITAN", desc: "Chiến binh bão tố khổng lồ phủ lớp giáp vàng rực kiên cố.", price: 680, icon: "♜", color: "#fbbf24", glow: "#f59e0b", tag: "HOÀNG KIM" },
 		{ id: "lotus", category: "character", name: "CYBER LOTUS", desc: "Ánh hồng neon tương lai tỏa sáng rực rỡ giữa tâm bão điện tử.", price: 760, icon: "✿", color: "#ff3b94", glow: "#f43f5e", tag: "HỒNG NEON" },
 		{ id: "chrono", category: "character", name: "CHRONO GHOST", desc: "Bộ giáp bạch kim nguyên tử phản chiếu mọi tia sét cực độ.", price: 850, icon: "✦", color: "#f8fafc", glow: "#cbd5e1", tag: "BẠCH KIM" },
-		{ id: "valkyrie", category: "character", name: "SOLAR VALKYRIE", desc: "Nữ chiến binh mặt trời mang nguồn năng lượng plasma bùng nổ.", price: 950, icon: "★", color: "#ff7828", glow: "#ea580c", tag: "THẦN THOẠI" },
+		{ id: "valkyrie", category: "character", name: "SOLAR VALKYRIE", desc: "Nữ chiến binh mặt trời mang nguồn plasma bùng nổ.", price: 950, icon: "★", color: "#ff7828", glow: "#ea580c", tag: "THẦN THOẠI" },
 
 		// --- BỘ HIỆU ỨNG NHÂN VẬT (HÀO QUANG & TÀN LỬA ĐA SẮC) ---
 		{ id: "ice", category: "effect", name: "HÀO QUANG BĂNG", desc: "Vòng sáng pha lê băng giá lạnh buốt bao quanh nhân vật.", price: 0, icon: "❋", color: "#5ce9ff", glow: "#06b6d4", tag: "MẶC ĐỊNH" },
@@ -28,6 +28,11 @@
 		{ id: "prism", category: "effect", name: "SAO BĂNG CẦU VỒNG", desc: "Hào quang lăng kính tán sắc cầu vồng rực rỡ lấp lánh.", price: 780, icon: "✺", color: "#a78bfa", glow: "#38bdf8", tag: "VÔ CỰC" },
 		{ id: "divine", category: "effect", name: "HÀO QUANG BẠCH NGỌC", desc: "Vòng thiên hà trắng bạc thuần khiết với hào quang thần thánh.", price: 890, icon: "❂", color: "#ffffff", glow: "#e2e8f0", tag: "THẦN THÁNH" }
 	];
+	products.push(
+		{ id: "coin_small", category: "coin", name: "TÚI XU NHỎ", desc: "Nhận thêm 100 xu vào tài khoản.", coinAmount: 100, price: 0, icon: "₿", color: "#ffe084", glow: "#ffc94d", tag: "PHỔ BIẾN" },
+		{ id: "coin_medium", category: "coin", name: "THÙNG XU", desc: "Nhận thêm 500 xu vào tài khoản.", coinAmount: 500, price: 0, icon: "▰", color: "#ffd55e", glow: "#f59e0b", tag: "TIẾT KIẾM" },
+		{ id: "coin_large", category: "coin", name: "KHO XU BÃO", desc: "Nhận thêm 1.200 xu vào tài khoản.", coinAmount: 1200, price: 0, icon: "ϟ", color: "#fff2aa", glow: "#ffd55e", tag: "GIÁ TRỊ CAO" }
+	);
 	var storageKey = "thunderstorm-profile-v1";
 	var bestKey = "thunderstorm-survival-best-v1";
 
@@ -73,7 +78,7 @@
 	document.querySelectorAll("[data-ts-game]").forEach(function (root) {
 		var profile = loadProfile();
 		var cart = {};
-		var activeCategory = "item";
+		var activeCategory = "coin";
 		var toastTimer = null;
 		var lobby = root.querySelector("[data-lobby]");
 		var store = root.querySelector("[data-store]");
@@ -158,7 +163,9 @@
 				var inCart = cart[item.id] || 0;
 				var count = item.category === "item" ? (profile.inventory[item.id] || 0) : 0;
 				var action = "";
-				if (item.category === "item") {
+				if (item.category === "coin") {
+					action = '<button class="ts-store__product-action" type="button" data-shop-action="add" data-product-id="' + item.id + '">MUA XU <span>+</span></button>';
+				} else if (item.category === "item") {
 					action = '<button class="ts-store__product-action" type="button" data-shop-action="add" data-product-id="' + item.id + '">THÊM VÀO GIỎ <span>+</span></button>';
 				} else if (isOwned) {
 					action = '<button class="ts-store__product-action ' + (isEquipped ? "is-equipped" : "") + '" type="button" data-shop-action="equip" data-product-id="' + item.id + '">' + (isEquipped ? "ĐANG TRANG BỊ" : "TRANG BỊ") + '</button>';
@@ -168,7 +175,7 @@
 				return '<article class="ts-store__product ' + (isOwned ? "is-owned" : "") + '">' +
 					'<div class="ts-store__product-top"><span class="ts-store__product-icon" style="--item-color:' + item.color + ';--item-glow:' + item.glow + '">' + item.icon + '</span><span class="ts-store__tag">' + item.tag + '</span></div>' +
 					'<h3>' + escapeHtml(item.name) + '</h3><p>' + escapeHtml(item.desc) + '</p>' +
-					'<div class="ts-store__product-meta"><strong>ϟ ' + currencyFormatter.format(item.price) + '</strong>' +
+					'<div class="ts-store__product-meta"><strong>ϟ ' + currencyFormatter.format(item.coinAmount || item.price) + '</strong>' +
 					(count ? '<span>ĐANG CÓ ' + count + '</span>' : (inCart ? '<span>TRONG GIỎ ' + inCart + '</span>' : "")) + '</div>' + action + '</article>';
 			}).join("");
 		}
@@ -182,14 +189,14 @@
 				var item = findProduct(id);
 				if (!item) return "";
 				return '<div class="ts-store__cart-row"><span class="ts-store__cart-icon">' + item.icon + '</span>' +
-					'<div class="ts-store__cart-name"><strong>' + escapeHtml(item.name) + '</strong><small>ϟ ' + currencyFormatter.format(item.price) + ' mỗi món</small></div>' +
+					'<div class="ts-store__cart-name"><strong>' + escapeHtml(item.name) + '</strong><small>+ϟ ' + currencyFormatter.format(item.coinAmount || item.price) + ' xu</small></div>' +
 					'<div class="ts-store__quantity"><button type="button" data-cart-action="minus" data-product-id="' + id + '" aria-label="Giảm số lượng">−</button><b>' + cart[id] + '</b><button type="button" data-cart-action="plus" data-product-id="' + id + '" aria-label="Tăng số lượng">+</button></div>' +
 					'<button class="ts-store__remove" type="button" data-cart-action="remove" data-product-id="' + id + '" aria-label="Xóa khỏi giỏ">×</button></div>';
 			}).join("");
 			cartTotal.textContent = currencyFormatter.format(total);
 			checkoutButton.disabled = ids.length === 0 || total > profile.coins;
 			if (ids.length && total > profile.coins) {
-				message.textContent = "Bạn còn thiếu " + currencyFormatter.format(total - profile.coins) + " năng lượng.";
+				message.textContent = "Bạn còn thiếu " + currencyFormatter.format(total - profile.coins) + " xu.";
 				message.classList.add("is-warning");
 			} else {
 				message.textContent = "";
@@ -199,10 +206,12 @@
 		}
 
 		function updateTabCounts() {
+			var coinCount = products.filter(function (p) { return p.category === "coin"; }).length;
 			var itemCount = products.filter(function (p) { return p.category === "item"; }).length;
 			var charCount = products.filter(function (p) { return p.category === "character"; }).length;
 			var effectCount = products.filter(function (p) { return p.category === "effect"; }).length;
 			root.querySelectorAll('[data-store-tab="item"] span').forEach(function (node) { node.textContent = (itemCount < 10 ? "0" : "") + itemCount; });
+			root.querySelectorAll('[data-store-tab="coin"] span').forEach(function (node) { node.textContent = (coinCount < 10 ? "0" : "") + coinCount; });
 			root.querySelectorAll('[data-store-tab="character"] span').forEach(function (node) { node.textContent = (charCount < 10 ? "0" : "") + charCount; });
 			root.querySelectorAll('[data-store-tab="effect"] span').forEach(function (node) { node.textContent = (effectCount < 10 ? "0" : "") + effectCount; });
 		}
@@ -244,7 +253,9 @@
 				var item = findProduct(id);
 				var quantity = cart[id];
 				if (!item) return;
-				if (item.category === "item") {
+				if (item.category === "coin") {
+					profile.coins += item.coinAmount * quantity;
+				} else if (item.category === "item") {
 					profile.inventory[item.id] = (profile.inventory[item.id] || 0) + quantity;
 				} else if (item.category === "character" && !owns(item)) {
 					profile.ownedCharacters.push(item.id);
@@ -254,15 +265,15 @@
 					profile.equippedEffect = item.id;
 				}
 			});
-			profile.coins -= total;
+			if (total > 0) profile.coins -= total;
 			cart = {};
 			saveProfile();
 			render();
-			showToast("Giao dịch thành công. Trang bị mới đã sẵn sàng!");
+			showToast("Mua xu thành công. Số dư đã được cộng!");
 		}
 
 		function openStore(category) {
-			activeCategory = ["item", "character", "effect"].indexOf(category) >= 0 ? category : "item";
+			activeCategory = category === "item" || category === "coin" ? "coin" : (["character", "effect"].indexOf(category) >= 0 ? category : "coin");
 			store.hidden = false;
 			store.querySelectorAll("[data-store-tab]").forEach(function (tab) {
 				tab.classList.toggle("is-active", tab.getAttribute("data-store-tab") === activeCategory);

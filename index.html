@@ -20,7 +20,7 @@
 		</a>
 		<div class="ts-lobby__top-actions">
 			<span class="ts-lobby__online"><i></i> HỆ THỐNG SẴN SÀNG</span>
-			<div class="ts-lobby__wallet" aria-label="Năng lượng hiện có"><span>ϟ</span><strong data-wallet-amount>900</strong><small>NĂNG LƯỢNG</small></div>
+			<div class="ts-lobby__wallet" aria-label="Số xu hiện có"><span>ϟ</span><strong data-wallet-amount>900</strong><small>XU</small></div>
 			<button class="ts-lobby__shop-trigger" type="button" data-open-shop data-shop-start="item"><span>▣</span> CỬA HÀNG <b data-cart-count>0</b></button>
 		</div>
 	</header>
@@ -97,12 +97,12 @@
 			</div>
 			<div class="ts-lobby__shop-card">
 				<div class="ts-lobby__shop-card-icon">▣</div>
-				<div><small>TRANG BỊ SẴN SÀNG?</small><strong>CỬA HÀNG BÃO</strong><p>Mua vật phẩm, nhân vật và hiệu ứng bằng năng lượng.</p></div>
+				<div><small>MUỐN THÊM XU?</small><strong>CỬA HÀNG BÃO</strong><p>Chọn gói xu phù hợp để bổ sung số dư.</p></div>
 				<button type="button" data-open-shop data-shop-start="item">MỞ CỬA HÀNG <span>→</span></button>
 			</div>
 			<div class="ts-lobby__daily">
 				<span class="ts-lobby__daily-icon">✦</span>
-				<div><small>THƯỞNG TÂN BINH</small><strong>900 năng lượng</strong><span>Sẵn sàng để mua món đầu tiên</span></div>
+				<div><small>THƯỞNG TÂN BINH</small><strong>900 xu</strong><span>Sẵn sàng bắt đầu hành trình</span></div>
 			</div>
 		</aside>
 	</div>
@@ -117,18 +117,16 @@
 		<button class="ts-store__scrim" type="button" data-close-store aria-label="Đóng cửa hàng"></button>
 		<section class="ts-store__panel" role="dialog" aria-modal="true" aria-labelledby="ts-store-title">
 			<header class="ts-store__header">
-				<div><p>TRẠM TIẾP TẾ // SECTOR 07</p><h2 id="ts-store-title">CỬA HÀNG BÃO</h2><span>Mọi món hàng dùng năng lượng trong game, không thanh toán tiền thật.</span></div>
+				<div><p>TRẠM TIẾP TẾ // SECTOR 07</p><h2 id="ts-store-title">CỬA HÀNG XU</h2><span>Chọn gói xu để bổ sung số dư trong trò chơi.</span></div>
 				<div class="ts-store__header-actions">
-					<div class="ts-store__wallet"><span>ϟ</span><strong data-store-wallet>900</strong><small>NĂNG LƯỢNG</small></div>
+					<div class="ts-store__wallet"><span>ϟ</span><strong data-store-wallet>900</strong><small>XU</small></div>
 					<button type="button" class="ts-store__close" data-close-store aria-label="Đóng cửa hàng">×</button>
 				</div>
 			</header>
 			<div class="ts-store__body">
 				<div class="ts-store__market">
 					<nav class="ts-store__tabs" aria-label="Danh mục cửa hàng">
-						<button type="button" data-store-tab="item" class="is-active">VẬT PHẨM <span>02</span></button>
-						<button type="button" data-store-tab="character">NHÂN VẬT <span>09</span></button>
-						<button type="button" data-store-tab="effect">HIỆU ỨNG <span>09</span></button>
+						<button type="button" data-store-tab="coin" class="is-active">MUA XU <span>03</span></button>
 					</nav>
 					<div class="ts-store__products" data-store-products></div>
 				</div>
